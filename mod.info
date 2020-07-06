@@ -1,0 +1,15 @@
+id=NRK_ModSelector
+
+name=NRK ModSelector
+name_extra=UI_NRK_ModSelector_Name
+
+description=Upgrade ModSelector menu <LINE> Completely replaces file ModSelector.lua
+description_extra=UI_NRK_ModSelector_Desc
+
+modversion=1
+pzversion=41.39
+tags=MainMenu, UI
+authors=Narrnika
+
+icon=nrk_modselector_icon.png
+poster=nrk_modselector_screen.png

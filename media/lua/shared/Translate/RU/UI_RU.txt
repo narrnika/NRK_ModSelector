@@ -1,0 +1,59 @@
+UI_RU = {
+	UI_NRK_ModSelector_Name = "Улучшенный выбор модов",
+	UI_NRK_ModSelector_Desc = "Мод заменяет меню выбора модов на более удобное, полностью заменяя файл ModSelector.lua"..
+	   " <LINE>Список изменений:"..
+	   " <LINE> - кнопка «Назад» теперь возвращает в предыдущее меню, отбрасывая изменения;"..
+	   " <LINE> - функционал старой кнопки «Назад» переназначен на новую кнопку «Принять»;"..
+	   " <LINE> - к списку модов добавлены поиск и фильтры;"..
+	   " <LINE> - в списке отображаются иконки модов с пометками, по аналогии с игровым инвентарём, переключение активности - пока только даблкликом;"..
+	   " <LINE> - добавлены сохранение и загрузка списков включенных модов (там же - «отключить все моды»);"..
+	   " <LINE> - переработана панель со скриншотами и превью модов, прокрутка - колёсиком мыши или кликом по боковым изображениям;"..
+	   " <LINE> - считываются дополнительные данные из файла mod.info (icon, name_extra, description_extra, modversion, pzversion, tags, authors);"..
+	   " <LINE> - на инфопанель добавлен сворачиваемый блок с технической информацией;"..
+	   " <LINE> - локальное расположение мода и отсылка на Steam сделаны в одном стиле - адрес и кнопка перехода;"..
+	   " <LINE> - аналогичная строка добавлена для URL (сделано в обход дефолтной блокировки).",
+	
+	UI_NRK_ModSelector_FilterBy = "Искать по",
+	UI_NRK_ModSelector_ByName = "имени,",
+	UI_NRK_ModSelector_ByDesc = "описанию,",
+	UI_NRK_ModSelector_ByTags = "тегам,",
+	UI_NRK_ModSelector_ByMaps = "картам",
+	UI_NRK_ModSelector_ShowMods = "Отображать моды",
+	UI_NRK_ModSelector_FromLocal = "локальные",
+	UI_NRK_ModSelector_FromWorkshop = "из мастерской",
+	UI_NRK_ModSelector_WithMap = "с картами",
+	UI_NRK_ModSelector_WithoutMap = "без карт",
+	
+	UI_NRK_ModSelector_Broken = " (сломано)",
+	UI_NRK_ModSelector_Enabled = " (включено)",
+	UI_NRK_ModSelector_EnabledBy = " (требуется для %1)",
+	UI_NRK_ModSelector_NoPoster = "Изображения отстутствуют",
+	
+	UI_NRK_ModSelector_ExtraInfo = "Дополнительная информация"
+	UI_NRK_ModSelector_ModID = "ID:",
+	UI_NRK_ModSelector_ModVersion = "Версия:",
+	UI_NRK_ModSelector_PZVersion = "Для версий PZ:",
+	UI_NRK_ModSelector_Require = "ID требуемых модов:",
+	UI_NRK_ModSelector_Tags = "Тэги:",
+	UI_NRK_ModSelector_Maps = "Карты:",
+	UI_NRK_ModSelector_Authors = "Авторы:",
+	
+	UI_NRK_ModSelector_ToWorkshop = "ID в мастерской Steam:",
+	UI_NRK_ModSelector_ToWorkshop_tt = "Открыть оверлей Steam для этого мода",
+	UI_NRK_ModSelector_ToURL = "Ссылка на сайт:",
+	UI_NRK_ModSelector_ToURL_tt = "Кликните для перехода к ссылке мода в вашем браузере",
+	UI_NRK_ModSelector_ToURL_warning = "(этот адрес не является официальным хранилищем модов PZ - вы переходите на него на свой страх и риск)",
+	UI_NRK_ModSelector_ToLocation = "Расположение на диске:",
+	UI_NRK_ModSelector_ToLocation_tt = "Открыть расположение файла",
+	UI_NRK_ModSelector_Go = "Перейти",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "Списки модов:",
+	UI_NRK_ModSelector_Save_NoSelection = "[--Выберите для загрузки--]",
+	UI_NRK_ModSelector_Save_AllDisabled = "Отключить все моды",
+	UI_NRK_ModSelector_Save_SaveButton = "Сохранить",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "Введите имя для сохранения списка:",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "Имя не должно содержать символы «;» и «:»",
+	UI_NRK_ModSelector_Save_DelButton = "Удалить",
+	UI_NRK_ModSelector_Save_DelButton_Request = "Удалить список модов «%1»?",
+}
