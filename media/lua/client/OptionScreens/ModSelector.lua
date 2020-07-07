@@ -37,9 +37,11 @@ ModSelector = ISPanelJoypad:derive("ModSelector")
 
 function ModSelector:new(x, y, width, height) -- call from MainScreen.lua
 	local o = ISPanelJoypad:new(x, y, width, height)
-	ModSelector.instance = o
+	ModSelector.instance = o -- call from NewGameScreen.lua, LoadGameScreen.lua
 	setmetatable(o, self)
 	self.__index = self
+	-- o.isNewGame = false/true -- when call from MainScreen.lua/NewGameScreen.lua
+	-- o.loadGameFolder = folder -- when call from LoadGameScreen.lua
 	return o
 end
 
@@ -55,7 +57,7 @@ function ModSelector:create() -- call from MainScreen.lua
 	self.titleLabel:setX((self.width - self.titleLabel:getWidth())/2)
 	self:addChild(self.titleLabel)
 	
-	self.filterPanel = ModPanelFilter:new(DX, FONT_HGT_TITLE + DY*2, halfW, BUTTON_HGT*2 + DY)
+	self.filterPanel = ModPanelFilter:new(DX, FONT_HGT_TITLE + DY*2, halfW, BUTTON_HGT*3)
 	self:addChild(self.filterPanel)
 	
 	self.listBox = ModListBox:new(DX, self.filterPanel:getBottom(), halfW, self.height - (self.filterPanel:getBottom() + BUTTON_HGT + DY*2))
@@ -220,7 +222,6 @@ function ModSelector:onResolutionChange(oldw, oldh, neww, newh) -- call from Mai
 	self.titleLabel:setX((self.width - self.titleLabel:getWidth())/2)
 	
 	self.filterPanel:setWidth(halfW)
-	self.filterPanel.textFilterText:setWidth(self.filterPanel:getWidth() - self.filterPanel.textFilterText:getX())
 	
 	self.listBox:setWidth(halfW)
 	self.listBox:setHeight(self.height - (self.filterPanel:getBottom() + BUTTON_HGT + DY*2))
@@ -260,13 +261,15 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 	
 	for _, directory in ipairs(directories) do
 		local item = {modInfo = getModInfo(directory)}
-		local modID = item.modInfo:getId()
-		if not modIDs[modID] then
-			item.modInfoExtra = self:readInfoExtra(modID)
-			item.isActive = activeMods:isModActive(modID)
-			
-			self.listBox:addItem(item.modInfo:getName(), item)
-			modIDs[modID] = true
+		if item.modInfo then -- to avoid errors if the mod has already been removed
+			local modID = item.modInfo:getId()
+			if not modIDs[modID] then
+				item.modInfoExtra = self:readInfoExtra(modID)
+				item.isActive = activeMods:isModActive(modID)
+				
+				self.listBox:addItem(item.modInfo:getName(), item)
+				modIDs[modID] = true
+			end
 		end
 	end
 	
@@ -293,14 +296,10 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 			end
 		end
 	end
-	--[[
-	table.sort(
-		self.listBox.items,
-		function(a,b)
-			return not string.sort(a.item.modInfo:getName(), b.item.modInfo:getName())
-		end
-	)]]
+	
 	self.listBox:sort()
+	
+	self.savePanel:updateOptions()
 end
 
 function ModSelector:checkRequire(modID)
@@ -381,143 +380,99 @@ function ModPanelFilter:new(x, y, width, height)
 	setmetatable(o, self)
 	self.__index = self
 	o.background = false
-	o.byname = true
-	o.bydesc = false
-	o.bytag = false
-	o.bymap = false
-	o.fromlocal = true
-	o.fromworkshop = true
-	o.withmap = true
-	o.withoutmap = true
 	return o
 end
 
 function ModPanelFilter:createChildren()
 	-- line 1
-	-- TODO: "Filter" [keyword] "in" [*] name, [*] description, [*] tags, [*] maps
-	self.textFilterLabel = ISLabel:new(
-		0, 0, BUTTON_HGT, getText("UI_NRK_ModSelector_FilterBy"),
+	self.filterLabel = ISLabel:new(
+		0, 0, BUTTON_HGT, getText("UI_NRK_ModSelector_Filter_FilterLabel"),
 		1, 1, 1, 1, UIFont.Small, true
 	)
-	self:addChild(self.textFilterLabel)
+	self:addChild(self.filterLabel)
 	
-	self.textFilterByName = ISTickBox:new(
-		self.textFilterLabel:getRight() + DX, 2, BUTTON_WDH, BUTTON_HGT,
-		"textFilterByName", self,
-		function()
-			self.byname = not self.byname
-		end
-	)
-	self.textFilterByName.choicesColor = {r=1, g=1, b=1, a=1}
-	self.textFilterByName:addOption(getText("UI_NRK_ModSelector_ByName"), nil)
-	self.textFilterByName:setWidthToFit()
-	self.textFilterByName.selected[1] = self.byname
-	self:addChild(self.textFilterByName)
+	self.mapTickBox = ISTickBox:new(self.filterLabel:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
+	self.mapTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithmapFlag"), nil)
+	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithoutmapFlag"), nil)
+	self.mapTickBox:setWidthToFit()
+	self.mapTickBox.selected[1] = true
+	self.mapTickBox.selected[2] = true
+	self:addChild(self.mapTickBox)
 	
-	self.textFilterByDesc = ISTickBox:new(
-		self.textFilterByName:getRight() + DX, 2, BUTTON_WDH, BUTTON_HGT,
-		"textFilterByDesc", self,
-		function()
-			self.bydesc = not self.bydesc
-		end
-	)
-	self.textFilterByDesc.choicesColor = {r=1, g=1, b=1, a=1}
-	self.textFilterByDesc:addOption(getText("UI_NRK_ModSelector_ByDesc"), nil)
-	self.textFilterByDesc:setWidthToFit()
-	self.textFilterByDesc.selected[1] = self.bydesc
-	self:addChild(self.textFilterByDesc)
+	self.locationTickBox = ISTickBox:new(self.mapTickBox:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
+	self.locationTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_LocalFlag"), nil)
+	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WorkshopFlag"), nil)
+	self.locationTickBox:setWidthToFit()
+	self.locationTickBox.selected[1] = true
+	self.locationTickBox.selected[2] = true
+	self:addChild(self.locationTickBox)
 	
-	self.textFilterByTag = ISTickBox:new(
-		self.textFilterByDesc:getRight() + DX, 2, BUTTON_WDH, BUTTON_HGT,
-		"textFilterByTag", self,
-		function()
-			self.bytag = not self.bytag
-		end
-	)
-	self.textFilterByTag.choicesColor = {r=1, g=1, b=1, a=1}
-	self.textFilterByTag:addOption(getText("UI_NRK_ModSelector_ByTags"), nil)
-	self.textFilterByTag:setWidthToFit()
-	self.textFilterByTag.selected[1] = self.bytag
-	self:addChild(self.textFilterByTag)
+	self.statusTickBox = ISTickBox:new(self.locationTickBox:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
+	self.statusTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_EnabledFlag"), nil)
+	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_DisabledFlag"), nil)
+	self.statusTickBox:setWidthToFit()
+	self.statusTickBox.selected[1] = true
+	self.statusTickBox.selected[2] = true
+	self:addChild(self.statusTickBox)
 	
-	self.textFilterByMap = ISTickBox:new(
-		self.textFilterByTag:getRight() + DX, 2, BUTTON_WDH, BUTTON_HGT,
-		"textFilterByMap", self,
-		function()
-			self.bymap = not self.bymap
-		end
-	)
-	self.textFilterByMap.choicesColor = {r=1, g=1, b=1, a=1}
-	self.textFilterByMap:addOption(getText("UI_NRK_ModSelector_ByMaps"), nil)
-	self.textFilterByMap:setWidthToFit()
-	self.textFilterByMap.selected[1] = self.bymap
-	self:addChild(self.textFilterByMap)
-	
-	self.textFilterText = ISTextEntryBox:new("",
-		self.textFilterByMap:getRight() + DX, 3,
-		self.width - (self.textFilterByMap:getRight() + DX), FONT_HGT_SMALL + 3
-	)
-	self:addChild(self.textFilterText)
+	self.availabilityTickBox = ISTickBox:new(self.statusTickBox:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
+	self.availabilityTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_AvailableFlag"), nil)
+	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_BrokenFlag"), nil)
+	self.availabilityTickBox:setWidthToFit()
+	self.availabilityTickBox.selected[1] = true
+	self.availabilityTickBox.selected[2] = true
+	self:addChild(self.availabilityTickBox)
 	
 	-- line 2
-	-- TODO: add [*]enable, [*]disabled, [*]available, [*]not available
-	self.flagFilterLabel = ISLabel:new(
-		0, BUTTON_HGT + DY, BUTTON_HGT, getText("UI_NRK_ModSelector_ShowMods"),
+	self.searchLabel = ISLabel:new(
+		0, self.availabilityTickBox:getBottom() + DY, BUTTON_HGT, getText("UI_NRK_ModSelector_Filter_SearchLabel"),
 		1, 1, 1, 1, UIFont.Small, true
 	)
-	self:addChild(self.flagFilterLabel)
+	self:addChild(self.searchLabel)
 	
-	self.flagFilterLocal = ISTickBox:new(
-		self.flagFilterLabel:getRight() + DX, BUTTON_HGT + DY + 2, BUTTON_WDH, BUTTON_HGT,
-		"flagFilterLocal", self,
-		function()
-			self.fromlocal = not self.fromlocal
-		end
+	self.searchEntryBox = ISTextEntryBox:new("",
+		self.searchLabel:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 3,
+		BUTTON_WDH*2, FONT_HGT_SMALL + 3
 	)
-	self.flagFilterLocal.choicesColor = {r=1, g=1, b=1, a=1}
-	self.flagFilterLocal:addOption(getText("UI_NRK_ModSelector_FromLocal"), nil)
-	self.flagFilterLocal:setWidthToFit()
-	self.flagFilterLocal.selected[1] = self.fromlocal
-	self:addChild(self.flagFilterLocal)
+	self:addChild(self.searchEntryBox)
 	
-	self.flagFilterWorkshop = ISTickBox:new(
-		self.flagFilterLocal:getRight() + DX, BUTTON_HGT + DY + 2, BUTTON_WDH, BUTTON_HGT,
-		"flagFilterLocal", self,
-		function()
-			self.fromworkshop = not self.fromworkshop
-		end
-	)
-	self.flagFilterWorkshop.choicesColor = {r=1, g=1, b=1, a=1}
-	self.flagFilterWorkshop:addOption(getText("UI_NRK_ModSelector_FromWorkshop"), nil)
-	self.flagFilterWorkshop:setWidthToFit()
-	self.flagFilterWorkshop.selected[1] = self.fromworkshop
-	self:addChild(self.flagFilterWorkshop)
+	self.nameTickBox = ISTickBox:new(self.searchEntryBox:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 2, BUTTON_WDH, BUTTON_HGT)
+	self.nameTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	self.nameTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByName"), nil)
+	self.nameTickBox:setWidthToFit()
+	self.nameTickBox.selected[1] = true
+	self:addChild(self.nameTickBox)
 	
-	self.flagFilterWithMap = ISTickBox:new(
-		self.flagFilterWorkshop:getRight() + DX, BUTTON_HGT + DY + 2, BUTTON_WDH, BUTTON_HGT,
-		"flagFilterLocal", self,
-		function()
-			self.withmap = not self.withmap
-		end
-	)
-	self.flagFilterWithMap.choicesColor = {r=1, g=1, b=1, a=1}
-	self.flagFilterWithMap:addOption(getText("UI_NRK_ModSelector_WithMap"), nil)
-	self.flagFilterWithMap:setWidthToFit()
-	self.flagFilterWithMap.selected[1] = self.withmap
-	self:addChild(self.flagFilterWithMap)
+	self.descTickBox = ISTickBox:new(self.nameTickBox:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 2, BUTTON_WDH, BUTTON_HGT)
+	self.descTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	self.descTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByDesc"), nil)
+	self.descTickBox:setWidthToFit()
+	self.descTickBox.selected[1] = false
+	self:addChild(self.descTickBox)
 	
-	self.flagFilterWithoutMap = ISTickBox:new(
-		self.flagFilterWithMap:getRight() + DX, BUTTON_HGT + DY + 2, BUTTON_WDH, BUTTON_HGT,
-		"flagFilterLocal", self,
-		function()
-			self.withoutmap = not self.withoutmap
-		end
-	)
-	self.flagFilterWithoutMap.choicesColor = {r=1, g=1, b=1, a=1}
-	self.flagFilterWithoutMap:addOption(getText("UI_NRK_ModSelector_WithoutMap"), nil)
-	self.flagFilterWithoutMap:setWidthToFit()
-	self.flagFilterWithoutMap.selected[1] = self.withoutmap
-	self:addChild(self.flagFilterWithoutMap)
+	self.tagsTickBox = ISTickBox:new(self.descTickBox:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 2, BUTTON_WDH, BUTTON_HGT)
+	self.tagsTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	self.tagsTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByTags"), nil)
+	self.tagsTickBox:setWidthToFit()
+	self.tagsTickBox.selected[1] = false
+	self:addChild(self.tagsTickBox)
+	
+	self.mapsTickBox = ISTickBox:new(self.tagsTickBox:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 2, BUTTON_WDH, BUTTON_HGT)
+	self.mapsTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	self.mapsTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByMaps"), nil)
+	self.mapsTickBox:setWidthToFit()
+	self.mapsTickBox.selected[1] = false
+	self:addChild(self.mapsTickBox)
+end
+
+function ModPanelFilter:onResize()
+	ISUIElement.onResize(self)
+	
+	-- TODO
 end
 
 
@@ -542,27 +497,31 @@ function ModListBox:doDrawItem(y, item, alt)
 	local modInfo = item.item.modInfo
 	local modInfoExtra = item.item.modInfoExtra
 	local filter = self.parent.filterPanel
-	if not filter.fromlocal and not modInfo:getWorkshopID() then return y end
-	if not filter.fromworkshop and modInfo:getWorkshopID() then return y end
-	if not filter.withmap and modInfoExtra.withMap then return y end
-	if not filter.withoutmap and not modInfoExtra.withMap then return y end
+	if not filter.locationTickBox.selected[1] and not modInfo:getWorkshopID() then return y end
+	if not filter.locationTickBox.selected[2] and modInfo:getWorkshopID() then return y end
+	if not filter.mapTickBox.selected[1] and modInfoExtra.withMap then return y end
+	if not filter.mapTickBox.selected[2] and not modInfoExtra.withMap then return y end
+	if not filter.statusTickBox.selected[1] and item.item.isActive then return y end
+	if not filter.statusTickBox.selected[2] and not item.item.isActive then return y end
+	if not filter.availabilityTickBox.selected[1] and item.item.isAvailable then return y end
+	if not filter.availabilityTickBox.selected[2] and not item.item.isAvailable then return y end
 	
-	local keyWord = filter.textFilterText:getText()
+	local keyWord = filter.searchEntryBox:getText()
 	if keyWord ~= nil and keyWord ~= "" then
 		local show, tableForFind = false, {}
 		
-		if filter.byname then
+		if filter.nameTickBox.selected[1] then
 			table.insert(tableForFind, modInfo:getName())
 			table.insert(tableForFind, modInfoExtra.name or "")
 		end
-		if filter.bydesc then
+		if filter.descTickBox.selected[1] then
 			table.insert(tableForFind, modInfo:getDescription() or "")
 			table.insert(tableForFind, modInfoExtra.description or "")
 		end
-		if filter.bytag then
+		if filter.tagsTickBox.selected[1] then
 			table.insert(tableForFind, modInfoExtra.tags or "")
 		end
-		if filter.bymap then
+		if filter.mapsTickBox.selected[1] then
 			for _, map in ipairs(modInfoExtra.maps or {}) do
 				table.insert(tableForFind, map or "")
 			end
@@ -598,15 +557,18 @@ function ModListBox:doDrawItem(y, item, alt)
 		self:drawTexture(BROKEN_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
 	end
 	
-	local text = modInfo:getName()
+	local text, r, g, b = modInfo:getName(), 1, 1, 1
 	if not item.item.isAvailable then
-		text = text .. getText("UI_NRK_ModSelector_Broken")
+		text = text .. getText("UI_NRK_ModSelector_Status_Broken")
+		g, b = 0.5, 0.5
 	elseif item.item.isActive == true then
-		text = text .. getText("UI_NRK_ModSelector_Enabled")
+		text = text .. getText("UI_NRK_ModSelector_Status_Enabled")
+		r, b = 0.5, 0.5
 	elseif type(item.item.isActive) == "table" then
-		text = text .. getText("UI_NRK_ModSelector_EnabledBy", table.concat(item.item.isActive, ", "))
+		text = text .. getText("UI_NRK_ModSelector_Status_EnabledBy", table.concat(item.item.isActive, ", "))
+		g, b = 0.7, 0.2
 	end
-	self:drawText(text, DX + FONT_HGT_MEDIUM + DX, y + DY, 1, 1, 1, 1, UIFont.Medium)
+	self:drawText(text, DX + FONT_HGT_MEDIUM + DX, y + DY, r, g, b, 1, UIFont.Medium)
 	
 	y = y + h
 	return y
@@ -1115,12 +1077,6 @@ function ModPanelSave:createChildren()
 	self.saveComboBox = ISComboBox:new(self.saveLabel:getRight() + DX, 0, BUTTON_WDH*2, BUTTON_HGT, self, self.onSelected)
 	self.saveComboBox.openUpwards = true
 	self.saveComboBox.noSelectionText = getText("UI_NRK_ModSelector_Save_NoSelection")
-	self.saveComboBox:addOptionWithData(getText("UI_NRK_ModSelector_Save_AllDisabled"), "clear")
-	self:readModList()
-	for save_name, _ in pairs(self.savelist) do
-		self.saveComboBox:addOptionWithData(save_name, "user")
-	end
-	self.saveComboBox.selected = 0 -- no selection
 	self:addChild(self.saveComboBox)
 	
 	self.saveButton = ISButton:new(
@@ -1161,18 +1117,55 @@ function ModPanelSave:writeModList()
 	file:close()
 end
 
+function ModPanelSave:updateOptions()
+	self.saveComboBox:clear()
+	self.saveComboBox:addOptionWithData(getText("UI_NRK_ModSelector_Save_AllDisabled"), "clear")
+	self.saveComboBox:addOptionWithData(getText("UI_NRK_ModSelector_Save_List_Global"), "currentlist_global")
+	self.saveComboBox:addOptionWithData(getText("UI_NRK_ModSelector_Save_List_LastSave"), "currentlist_lastsave")
+	if self.parent.loadGameFolder or self.parent.isNewGame then
+		self.saveComboBox:addOptionWithData(getText("UI_NRK_ModSelector_Save_List_CurrentSave"), "currentlist_currentsave")
+	end
+	self:readModList()
+	for save_name, _ in pairs(self.savelist) do
+		self.saveComboBox:addOptionWithData(save_name, "user")
+	end
+	self.saveComboBox.selected = 0
+	self.delButton:setEnable(false)
+end
+
 function ModPanelSave:onSelected()
 	local selectedItem = self.saveComboBox.options[self.saveComboBox.selected]
 	local name, data = selectedItem.text, selectedItem.data
 	
 	self.delButton:setEnable(data == "user")
 	
-	for _, item in ipairs(self.parent.listBox.items) do
-		item.item.isActive = false
+	local activeMods = {}
+	if data == "currentlist_global" then
+		local mods = ActiveMods.getById("default"):getMods()
+		for i = 0, mods:size() - 1 do
+			activeMods[mods:get(i)] = true
+		end
+	elseif data == "currentlist_lastsave" then
+		local mods = getSaveInfo(MainScreen.latestSaveWorld).activeMods:getMods()
+		for i = 0, mods:size() - 1 do
+			activeMods[mods:get(i)] = true
+		end
+	elseif data == "currentlist_currentsave" then
+		local mods = ActiveMods.getById("currentGame"):getMods()
+		for i = 0, mods:size() - 1 do
+			activeMods[mods:get(i)] = true
+		end
+	elseif data == "user" then
+		for _, m in ipairs(self.savelist[name]) do
+			activeMods[m] = true
+		end
 	end
-	if data == "user" then
-		for _, id in ipairs(self.savelist[name]) do
-			self.parent.listBox:getItemById(id).item.isActive = true
+	
+	for _, item in ipairs(self.parent.listBox.items) do
+		if activeMods[item.item.modInfo:getId()] then
+			item.item.isActive = true
+		else
+			item.item.isActive = false
 		end
 	end
 	
@@ -1227,14 +1220,9 @@ function ModPanelSave:onSaveListConfirm(button)
 			end
 		end
 		self:writeModList()
-		
-		self.saveComboBox.options = {}
-		self.saveComboBox:addOptionWithData(getText("UI_NRK_ModSelector_Save_AllDisabled"), "clear")
-		for save_name, _ in pairs(self.savelist) do
-			self.saveComboBox:addOptionWithData(save_name, "user")
-		end
-		self.saveComboBox:select(name)
-		self.delButton:setEnable(true)
+		self:updateOptions()
+		--self.saveComboBox:select(name)
+		--self.delButton:setEnable(true)
 	end
 end
 
@@ -1258,18 +1246,11 @@ function ModPanelSave:onDelListConfirm(button)
 		local name = self.saveComboBox.options[self.saveComboBox.selected].text
 		self.savelist[name] = nil
 		self:writeModList()
-		
-		self.saveComboBox.options = {}
-		self.saveComboBox:addOptionWithData(getText("UI_NRK_ModSelector_Save_AllDisabled"), "clear")
-		for save_name, _ in pairs(self.savelist) do
-			self.saveComboBox:addOptionWithData(save_name, "user")
-		end
-		self.saveComboBox.selected = 0 -- no selection
-		self.delButton:setEnable(false)
+		self:updateOptions()
 	end
 end
 
--- TODO: Events.OnModsModified - WTF? Reread mod-list from disk?
+-- TODO: Events.OnModsModified - changing contents of mods (doesn't work when deleting/adding mod); use?
 -- TODO: get/set OptionModsEnabled - no need?
 -- TODO: mapGroups/mapConflicts/ModOrderUI - it's work?
 -- TODO: Joypad - now only "Back/Accept" work

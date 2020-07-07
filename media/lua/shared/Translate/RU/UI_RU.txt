@@ -13,21 +13,30 @@ UI_RU = {
 	   " <LINE> - локальное расположение мода и отсылка на Steam сделаны в одном стиле - адрес и кнопка перехода;"..
 	   " <LINE> - аналогичная строка добавлена для URL (сделано в обход дефолтной блокировки).",
 	
-	UI_NRK_ModSelector_FilterBy = "Искать по",
-	UI_NRK_ModSelector_ByName = "имени,",
-	UI_NRK_ModSelector_ByDesc = "описанию,",
-	UI_NRK_ModSelector_ByTags = "тегам,",
-	UI_NRK_ModSelector_ByMaps = "картам",
-	UI_NRK_ModSelector_ShowMods = "Отображать моды",
-	UI_NRK_ModSelector_FromLocal = "локальные",
-	UI_NRK_ModSelector_FromWorkshop = "из мастерской",
-	UI_NRK_ModSelector_WithMap = "с картами",
-	UI_NRK_ModSelector_WithoutMap = "без карт",
 	
-	UI_NRK_ModSelector_Broken = " (сломано)",
-	UI_NRK_ModSelector_Enabled = " (включено)",
-	UI_NRK_ModSelector_EnabledBy = " (требуется для %1)",
+	UI_NRK_ModSelector_Filter_FilterLabel = "Отображать моды:",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "с картами",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "без карт",
+	UI_NRK_ModSelector_Filter_LocalFlag = "локальные",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "из мастерской",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "включенные",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "выключенные",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "доступные",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "не доступные",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "Искать:",
+	UI_NRK_ModSelector_Filter_ByName = "по имени,",
+	UI_NRK_ModSelector_Filter_ByDesc = "по описанию,",
+	UI_NRK_ModSelector_Filter_ByTags = "по тегам,",
+	UI_NRK_ModSelector_Filter_ByMaps = "по картам",
+	
+	UI_NRK_ModSelector_Status_Broken = " (сломано)",
+	UI_NRK_ModSelector_Status_Enabled = " (включено)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (требуется для %1)",
+	
+	
 	UI_NRK_ModSelector_NoPoster = "Изображения отстутствуют",
+	
 	
 	UI_NRK_ModSelector_ExtraInfo = "Дополнительная информация"
 	UI_NRK_ModSelector_ModID = "ID:",
@@ -51,6 +60,9 @@ UI_RU = {
 	UI_NRK_ModSelector_Save_Label = "Списки модов:",
 	UI_NRK_ModSelector_Save_NoSelection = "[--Выберите для загрузки--]",
 	UI_NRK_ModSelector_Save_AllDisabled = "Отключить все моды",
+	UI_NRK_ModSelector_Save_List_Global = "Текущий список - глобальный",
+	UI_NRK_ModSelector_Save_List_LastSave = "Текущий список - последнее сохранение",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "Текущий список - текущее сохранение",
 	UI_NRK_ModSelector_Save_SaveButton = "Сохранить",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Введите имя для сохранения списка:",
 	UI_NRK_ModSelector_Save_SaveButton_tt = "Имя не должно содержать символы «;» и «:»",

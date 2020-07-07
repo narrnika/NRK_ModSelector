@@ -2,21 +2,31 @@ UI_EN = {
 	UI_NRK_ModSelector_Name = "Improved mod selection",
 	UI_NRK_ModSelector_Desc = "This mod replaces menu «Select mods» with a more convenient one, completely replacing file ModSelector.lua",
 	
-	UI_NRK_ModSelector_FilterBy = "Filter by",
-	UI_NRK_ModSelector_ByName = "name,",
-	UI_NRK_ModSelector_ByDesc = "description,",
-	UI_NRK_ModSelector_ByTags = "tags,",
-	UI_NRK_ModSelector_ByMaps = "maps",
-	UI_NRK_ModSelector_ShowMods = "Show mods",
-	UI_NRK_ModSelector_FromLocal = "from local",
-	UI_NRK_ModSelector_FromWorkshop = "from workshop",
-	UI_NRK_ModSelector_WithMap = "with maps",
-	UI_NRK_ModSelector_WithoutMap = "without maps",
 	
-	UI_NRK_ModSelector_Broken = " (broken)",
-	UI_NRK_ModSelector_Enabled = " (enabled)",
-	UI_NRK_ModSelector_EnabledBy = " (enabled by %1)",
+	UI_NRK_ModSelector_Filter_FilterLabel = "Show mods:",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "with maps",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "without maps",
+	UI_NRK_ModSelector_Filter_LocalFlag = "from local",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "from workshop",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "enabled",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "disabled",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "available",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "broken",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "Search:",
+	UI_NRK_ModSelector_Filter_ByName = "by name,",
+	UI_NRK_ModSelector_Filter_ByDesc = "by description,",
+	UI_NRK_ModSelector_Filter_ByTags = "by tags,",
+	UI_NRK_ModSelector_Filter_ByMaps = "by maps",
+	
+	
+	UI_NRK_ModSelector_Status_Broken = " (broken)",
+	UI_NRK_ModSelector_Status_Enabled = " (enabled)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (enabled by %1)",
+	
+	
 	UI_NRK_ModSelector_NoPoster = "No posters",
+	
 	
 	UI_NRK_ModSelector_ExtraInfo = "Extra info"
 	UI_NRK_ModSelector_ModID = "ID:",
@@ -36,9 +46,13 @@ UI_EN = {
 	UI_NRK_ModSelector_ToLocation_tt = "Open file location",
 	UI_NRK_ModSelector_Go = "Follow",
 	
+	
 	UI_NRK_ModSelector_Save_Label = "Mod's lists:",
 	UI_NRK_ModSelector_Save_NoSelection = "[--Select to load--]",
 	UI_NRK_ModSelector_Save_AllDisabled = "Disable all mods",
+	UI_NRK_ModSelector_Save_List_Global = "Current list - global",
+	UI_NRK_ModSelector_Save_List_LastSave = "Current list - last save",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "Current list - current save",
 	UI_NRK_ModSelector_Save_SaveButton = "Save",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Enter name for save list:",
 	UI_NRK_ModSelector_Save_SaveButton_tt = "Name must not contain characters «;» and «:»",
