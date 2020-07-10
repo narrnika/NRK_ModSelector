@@ -4,14 +4,14 @@ UI_EN = {
 	
 	
 	UI_NRK_ModSelector_Filter_FilterLabel = "Show mods:",
-	UI_NRK_ModSelector_Filter_WithmapFlag = "with maps",
-	UI_NRK_ModSelector_Filter_WithoutmapFlag = "without maps",
-	UI_NRK_ModSelector_Filter_LocalFlag = "from local",
-	UI_NRK_ModSelector_Filter_WorkshopFlag = "from workshop",
-	UI_NRK_ModSelector_Filter_EnabledFlag = "enabled",
-	UI_NRK_ModSelector_Filter_DisabledFlag = "disabled",
-	UI_NRK_ModSelector_Filter_AvailableFlag = "available",
-	UI_NRK_ModSelector_Filter_BrokenFlag = "broken",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "with maps (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "without maps (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "from local (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "from workshop (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "enabled (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "disabled (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "available (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "broken (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Search:",
 	UI_NRK_ModSelector_Filter_ByName = "by name,",
@@ -19,6 +19,11 @@ UI_EN = {
 	UI_NRK_ModSelector_Filter_ByTags = "by tags,",
 	UI_NRK_ModSelector_Filter_ByMaps = "by maps",
 	
+	
+	UI_NRK_ModSelector_List_Favorite = "To favoites",
+	UI_NRK_ModSelector_List_Unfavorite = "Remove from favoites",
+	UI_NRK_ModSelector_List_On = "On",
+	UI_NRK_ModSelector_List_Off = "Off",
 	
 	UI_NRK_ModSelector_Status_Broken = " (broken)",
 	UI_NRK_ModSelector_Status_Enabled = " (enabled)",

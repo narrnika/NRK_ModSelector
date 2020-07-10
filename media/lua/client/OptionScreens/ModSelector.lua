@@ -25,6 +25,7 @@ local BUTTON_WDH = 100
 local DX, DY = 10, 5
 
 local DEFAULT_ICON = getTexture("media/ui/DefaultIcon.png")
+local MAP_ICON = getTexture("media/ui/MapIcon.png")
 local ACTIVE_ICON = getTexture("media/ui/iconInHotbar.png")
 local REQUIRE_ICON = getTexture("media/ui/icon.png")
 local BROKEN_ICON = getTexture("media/ui/icon_broken.png")
@@ -225,6 +226,9 @@ function ModSelector:onResolutionChange(oldw, oldh, neww, newh) -- call from Mai
 	
 	self.listBox:setWidth(halfW)
 	self.listBox:setHeight(self.height - (self.filterPanel:getBottom() + BUTTON_HGT + DY*2))
+	self.listBox.btn.x1 = halfW - (self.listBox.btn.w1 + DX)
+	self.listBox.btn.x2 = halfW - (self.listBox.btn.w2 + DX)
+	
 	
 	self.posterPanel:setX(halfW + DX*2)
 	self.posterPanel:setWidth(halfW)
@@ -256,7 +260,7 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 	print(NRKLOG, "populateListBox, ", directories)
 	self.listBox:clear()
 	local modIDs = {}
-	
+	local counts = {withmap = 0, withoutmap = 0, fromlocal = 0, fromworkshop = 0, enabled = 0, disabled = 0, available = 0, broken = 0}
 	local activeMods = (self.loadGameFolder or self.isNewGame) and ActiveMods.getById("currentGame") or ActiveMods.getById("default")
 	
 	for _, directory in ipairs(directories) do
@@ -266,6 +270,10 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 			if not modIDs[modID] then
 				item.modInfoExtra = self:readInfoExtra(modID)
 				item.isActive = activeMods:isModActive(modID)
+				
+				if item.modInfoExtra.withMap then counts.withmap = counts.withmap + 1 else counts.withoutmap = counts.withoutmap + 1 end
+				if item.modInfo:getWorkshopID() then counts.fromworkshop = counts.fromworkshop + 1 else counts.fromlocal = counts.fromlocal + 1 end
+				if item.isActive then counts.enabled = counts.enabled + 1 else counts.disabled = counts.disabled + 1 end
 				
 				self.listBox:addItem(item.modInfo:getName(), item)
 				modIDs[modID] = true
@@ -277,8 +285,11 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 	for _, item in ipairs(self.listBox.items) do
 		if item.item.isAvailable == nil then
 			item.item.isAvailable = self:checkRequire(item.item.modInfo:getId())
+			if item.item.isAvailable then counts.available = counts.available + 1 else counts.broken = counts.broken + 1 end
 		end
 	end
+	
+	self.listBox.counts = counts
 	
 	-- mark mods activated by require
 	-- TODO: make as function
@@ -343,7 +354,7 @@ function ModSelector:readInfoExtra(modID)
 			val = luautils.trim(string.sub(line, sep + 1))
 		end
 		-- split lists
-		if key == "authors" then -- tags? pzversion?
+		if key == "authors" or key == "tags" then -- add pzversion?
 			val = luautils.split(val, ",")
 			for i, j in ipairs(val) do
 				val[i] = luautils.trim(j)
@@ -393,8 +404,8 @@ function ModPanelFilter:createChildren()
 	
 	self.mapTickBox = ISTickBox:new(self.filterLabel:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
 	self.mapTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithmapFlag"), nil)
-	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithoutmapFlag"), nil)
+	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithmapFlag", 0), nil)
+	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", 0), nil)
 	self.mapTickBox:setWidthToFit()
 	self.mapTickBox.selected[1] = true
 	self.mapTickBox.selected[2] = true
@@ -402,8 +413,8 @@ function ModPanelFilter:createChildren()
 	
 	self.locationTickBox = ISTickBox:new(self.mapTickBox:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
 	self.locationTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_LocalFlag"), nil)
-	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WorkshopFlag"), nil)
+	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_LocalFlag", 0), nil)
+	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WorkshopFlag", 0), nil)
 	self.locationTickBox:setWidthToFit()
 	self.locationTickBox.selected[1] = true
 	self.locationTickBox.selected[2] = true
@@ -411,8 +422,8 @@ function ModPanelFilter:createChildren()
 	
 	self.statusTickBox = ISTickBox:new(self.locationTickBox:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
 	self.statusTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_EnabledFlag"), nil)
-	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_DisabledFlag"), nil)
+	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_EnabledFlag", 0), nil)
+	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_DisabledFlag", 0), nil)
 	self.statusTickBox:setWidthToFit()
 	self.statusTickBox.selected[1] = true
 	self.statusTickBox.selected[2] = true
@@ -420,8 +431,8 @@ function ModPanelFilter:createChildren()
 	
 	self.availabilityTickBox = ISTickBox:new(self.statusTickBox:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
 	self.availabilityTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_AvailableFlag"), nil)
-	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_BrokenFlag"), nil)
+	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_AvailableFlag", 0), nil)
+	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_BrokenFlag", 0), nil)
 	self.availabilityTickBox:setWidthToFit()
 	self.availabilityTickBox.selected[1] = true
 	self.availabilityTickBox.selected[2] = true
@@ -469,6 +480,29 @@ function ModPanelFilter:createChildren()
 	self:addChild(self.mapsTickBox)
 end
 
+function ModPanelFilter:prerender()
+	local counts = self.parent.listBox.counts
+	-- TODO: disabled = all - enabled, available = all - broken, ...?
+	self.mapTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_WithmapFlag", counts.withmap)
+	self.mapTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_WithmapFlag", counts.withmap)
+	self.mapTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", counts.withoutmap)
+	self.mapTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", counts.withoutmap)
+	self.locationTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_LocalFlag", counts.fromlocal)
+	self.locationTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_LocalFlag", counts.fromlocal)
+	self.locationTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_WorkshopFlag", counts.fromworkshop)
+	self.locationTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_WorkshopFlag", counts.fromworkshop)
+	self.statusTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", counts.enabled)
+	self.statusTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", counts.enabled)
+	self.statusTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", counts.disabled)
+	self.statusTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", counts.disabled)
+	self.availabilityTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_AvailableFlag", counts.available)
+	self.availabilityTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_AvailableFlag", counts.available)
+	self.availabilityTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_BrokenFlag", counts.broken)
+	self.availabilityTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_BrokenFlag", counts.broken)
+	
+	ISPanelJoypad.prerender(self)
+end
+
 function ModPanelFilter:onResize()
 	ISUIElement.onResize(self)
 	
@@ -483,70 +517,127 @@ function ModListBox:new(x, y, width, height)
 	setmetatable(o, self)
 	self.__index = self
 	o.drawBorder = true
-	o.itemheight = FONT_HGT_MEDIUM + 2*DY
+	
+	o.itemheight = math.max(FONT_HGT_MEDIUM + DY*2, BUTTON_HGT)
+	
+	o.btn = {}
+	o.btn.text1 = getText("UI_NRK_ModSelector_List_Favorite")
+	o.btn.text2 = getText("UI_NRK_ModSelector_List_Unfavorite")
+	o.btn.text3 = getText("UI_NRK_ModSelector_List_On")
+	o.btn.text4 = getText("UI_NRK_ModSelector_List_Off")
+	local w1 = getTextManager():MeasureStringX(UIFont.Small, o.btn.text1)
+	local w2 = getTextManager():MeasureStringX(UIFont.Small, o.btn.text2)
+	local w3 = getTextManager():MeasureStringX(UIFont.Small, o.btn.text3)
+	local w4 = getTextManager():MeasureStringX(UIFont.Small, o.btn.text4)
+	o.btn.w1 = math.max(w2, (math.max(w1, math.max(w3, w4)) + DX)*2) + DX
+	o.btn.w2 = (o.btn.w1 - DX)/2
+	o.btn.x1 = o.width - (o.btn.w1 + DX)
+	o.btn.x2 = o.width - (o.btn.w2 + DX)
+	o.btn.dy = (o.itemheight - BUTTON_HGT)/2
 	--[[
 	o.item.item.modInfo
 	o.item.item.modInfoExtra = {}
 	o.item.item.isAvailable = true/false
 	o.item.item.isActive = true/false/{modID1, modID2, ...}
+	o.item.item.isFavor = true/false
 	]]
 	return o
 end
 
-function ModListBox:doDrawItem(y, item, alt)
-	local modInfo = item.item.modInfo
-	local modInfoExtra = item.item.modInfoExtra
+function ModListBox:checkFilter(item)
 	local filter = self.parent.filterPanel
-	if not filter.locationTickBox.selected[1] and not modInfo:getWorkshopID() then return y end
-	if not filter.locationTickBox.selected[2] and modInfo:getWorkshopID() then return y end
-	if not filter.mapTickBox.selected[1] and modInfoExtra.withMap then return y end
-	if not filter.mapTickBox.selected[2] and not modInfoExtra.withMap then return y end
-	if not filter.statusTickBox.selected[1] and item.item.isActive then return y end
-	if not filter.statusTickBox.selected[2] and not item.item.isActive then return y end
-	if not filter.availabilityTickBox.selected[1] and item.item.isAvailable then return y end
-	if not filter.availabilityTickBox.selected[2] and not item.item.isAvailable then return y end
 	
+	-- tickbox filter
+	if not filter.locationTickBox.selected[1] and not item.modInfo:getWorkshopID() then return false end
+	if not filter.locationTickBox.selected[2] and item.modInfo:getWorkshopID() then return false end
+	if not filter.mapTickBox.selected[1] and item.modInfoExtra.withMap then return false end
+	if not filter.mapTickBox.selected[2] and not item.modInfoExtra.withMap then return false end
+	if not filter.statusTickBox.selected[1] and item.isActive then return false end
+	if not filter.statusTickBox.selected[2] and not item.isActive then return false end
+	if not filter.availabilityTickBox.selected[1] and item.isAvailable then return false end
+	if not filter.availabilityTickBox.selected[2] and not item.isAvailable then return false end
+	
+	-- search filter
 	local keyWord = filter.searchEntryBox:getText()
 	if keyWord ~= nil and keyWord ~= "" then
 		local show, tableForFind = false, {}
 		
 		if filter.nameTickBox.selected[1] then
-			table.insert(tableForFind, modInfo:getName())
-			table.insert(tableForFind, modInfoExtra.name or "")
+			table.insert(tableForFind, item.modInfo:getName())
+			table.insert(tableForFind, item.modInfoExtra.name or "")
 		end
 		if filter.descTickBox.selected[1] then
-			table.insert(tableForFind, modInfo:getDescription() or "")
-			table.insert(tableForFind, modInfoExtra.description or "")
+			table.insert(tableForFind, item.modInfo:getDescription() or "")
+			table.insert(tableForFind, item.modInfoExtra.description or "")
 		end
 		if filter.tagsTickBox.selected[1] then
-			table.insert(tableForFind, modInfoExtra.tags or "")
+			for _, t in ipairs(item.modInfoExtra.tags or {}) do
+				table.insert(tableForFind, t)
+			end
 		end
 		if filter.mapsTickBox.selected[1] then
-			for _, map in ipairs(modInfoExtra.maps or {}) do
+			for _, map in ipairs(item.modInfoExtra.maps or {}) do
 				table.insert(tableForFind, map or "")
 			end
 		end
 		
 		for _, s in ipairs(tableForFind) do
-			if string.find(s, keyWord) ~= nil then
+			if string.find(string.lower(s), string.lower(keyWord)) ~= nil then
 				show = true
 				break
 			end
 		end
 		
-		if not show then return y end
+		if not show then return false end
 	end
 	
+	return true
+end
+
+function ModListBox:doDrawButton(text, internal, x, y, w, h)
+	local selected = self.mouseoverselected
+	local color = {a = 1.0, r = 0.0, g = 0.0, b = 0.0}
+	
+	if self:getMouseX() > x and self:getMouseX() < x + w and self:getMouseY() > y and self:getMouseY() < y + h then
+		if self.pressedbutton and self.pressedbutton.internal == internal and self.pressedbutton.selected == selected then
+			color = {a = 1.0, r = 0.15, g = 0.15, b = 0.15}
+		else
+			color = {a = 1.0, r = 0.3, g = 0.3, b = 0.3}
+		end
+		self.mouseoverbutton = {internal = internal, selected = selected}
+	elseif self.mouseoverbutton and self.mouseoverbutton.internal == internal and self.mouseoverbutton.selected == selected then
+		self.mouseoverbutton = nil
+	end
+	
+	self:drawRect(x, y, w, h, color.a, color.r, color.g, color.b)
+	self:drawRectBorder(x, y, w, h, 0.1, 1.0, 1.0, 1.0)
+	self:drawTextCentre(
+		text, x + w/2, y + (BUTTON_HGT - FONT_HGT_SMALL)/2,
+		1.0, 1.0, 1.0, 1.0, UIFont.Small
+	)
+end
+
+function ModListBox:doDrawItem(y, item, alt)
+	local modInfo = item.item.modInfo
+	local modInfoExtra = item.item.modInfoExtra
+	
+	-- Filter
+	if not self:checkFilter(item.item) then return y end
+	
+	-- Draw
 	local h = self.itemheight
+	local s = self:isVScrollBarVisible() and 13 or 0
 	
+	-- item bar
 	if self.selected == item.index then
-		self:drawRect(0, y, self:getWidth(), h - 1, 0.3, 0.7, 0.35, 0.15)
+		self:drawRect(0, y, self:getWidth(), h, 0.3, 0.7, 0.35, 0.15)
 	elseif self.mouseoverselected == item.index and not self:isMouseOverScrollBar() then
-		self:drawRect(1, y + 1, self:getWidth() - 2, h - 2, 0.95, 0.05, 0.05, 0.05)
+		self:drawRect(0, y, self:getWidth(), h, 0.95, 0.05, 0.05, 0.05)
 	end
-	self:drawRectBorder(0, y, self:getWidth(), h - 1, 0.5, self.borderColor.r, self.borderColor.g, self.borderColor.b)
+	self:drawRectBorder(0, y, self:getWidth(), h, 0.5, self.borderColor.r, self.borderColor.g, self.borderColor.b)
 	
-	local icon = modInfoExtra.icon and getTexture(modInfoExtra.icon) or DEFAULT_ICON
+	-- icon
+	local icon = modInfoExtra.icon and getTexture(modInfoExtra.icon) or modInfoExtra.withMap and MAP_ICON or DEFAULT_ICON
 	self:drawTextureScaled(icon, DX, y + DY, FONT_HGT_MEDIUM, FONT_HGT_MEDIUM, 1)
 	if item.item.isActive == true then
 		self:drawTexture(ACTIVE_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
@@ -556,7 +647,11 @@ function ModListBox:doDrawItem(y, item, alt)
 	if not item.item.isAvailable then
 		self:drawTexture(BROKEN_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
 	end
+	if item.item.isFavor then
+		self:drawTexture(FAVORITE_ICON, DX + FONT_HGT_MEDIUM - 6, y + DY, 1)
+	end
 	
+	-- title
 	local text, r, g, b = modInfo:getName(), 1, 1, 1
 	if not item.item.isAvailable then
 		text = text .. getText("UI_NRK_ModSelector_Status_Broken")
@@ -570,13 +665,32 @@ function ModListBox:doDrawItem(y, item, alt)
 	end
 	self:drawText(text, DX + FONT_HGT_MEDIUM + DX, y + DY, r, g, b, 1, UIFont.Medium)
 	
-	y = y + h
+	-- buttons
+	if self.mouseoverselected == item.index and not self:isMouseOverScrollBar() and item.item.isAvailable then
+		if item.item.isFavor then
+			self:doDrawButton(self.btn.text2, "UNFAVOR", self.btn.x1 - s, y + self.btn.dy, self.btn.w1, BUTTON_HGT)
+		else
+			self:doDrawButton(self.btn.text1, "FAVOR", self.btn.x1 - s, y + self.btn.dy, self.btn.w2, BUTTON_HGT)
+			if item.item.isActive then
+				self:doDrawButton(self.btn.text4, "OFF", self.btn.x2 - s, y + self.btn.dy, self.btn.w2, BUTTON_HGT)
+			else
+				self:doDrawButton(self.btn.text3, "ON", self.btn.x2 - s, y + self.btn.dy, self.btn.w2, BUTTON_HGT)
+			end
+		end
+	end
+	
+	y = y + h + 1
 	return y
 end
 
 function ModListBox:doActive(item, byRequire)
 	local modID = item.modInfo:getId()
 	print(NRKLOG, "do Active", modID, byRequire)
+	if item.isActive == false then
+		self.counts.enabled = self.counts.enabled + 1
+		self.counts.disabled = self.counts.disabled - 1
+	end
+	
 	if not byRequire then
 		item.isActive = true
 	else
@@ -594,6 +708,7 @@ function ModListBox:doActive(item, byRequire)
 			self:doActive(self:getItemById(requiresID).item, modID)
 		end
 	end
+	
 end
 
 function ModListBox:doInactive(item, byRequire)
@@ -611,6 +726,8 @@ function ModListBox:doInactive(item, byRequire)
 		end
 		if #new_active == 0 then
 			item.isActive = false
+			self.counts.enabled = self.counts.enabled - 1
+			self.counts.disabled = self.counts.disabled + 1
 			if requiresDown and not requiresDown:isEmpty() then
 				for i = 0, requiresDown:size() - 1 do
 					self:doInactive(self:getItemById(requiresDown:get(i)).item, modID)
@@ -621,6 +738,8 @@ function ModListBox:doInactive(item, byRequire)
 		end
 	else
 		item.isActive = false
+		self.counts.enabled = self.counts.enabled - 1
+		self.counts.disabled = self.counts.disabled + 1
 		if requiresDown and not requiresDown:isEmpty() then
 			for i = 0, requiresDown:size() - 1 do
 				self:doInactive(self:getItemById(requiresDown:get(i)).item, modID)
@@ -641,10 +760,46 @@ function ModListBox:getItemById(modID)
 	return nil
 end
 
+function ModListBox:onMouseDown(x, y)
+	if self.mouseoverbutton then
+		self.pressedbutton = self.mouseoverbutton
+	else
+		ISScrollingListBox.onMouseDown(self, x, y)
+	end
+end
+
+function ModListBox:onMouseUp(x, y)
+	if self.mouseoverbutton and self.pressedbutton and self.mouseoverbutton.internal == self.pressedbutton.internal and self.mouseoverbutton.selected == self.pressedbutton.selected then
+		print(NRKLOG, "onMouseUp, click = ", self.pressedbutton.internal, self.pressedbutton.selected)
+		local item = self.items[self.pressedbutton.selected].item
+		if self.pressedbutton.internal == "ON" then
+			self:doActive(item)
+		elseif self.pressedbutton.internal == "OFF" then
+			self:doInactive(item)
+		elseif self.pressedbutton.internal == "FAVOR" then
+			-- TODO: check require ?!!!
+			--self:doActive(item)
+			item.isFavor = true
+		elseif self.pressedbutton.internal == "UNFAVOR" then
+			-- TODO: check require ?!!!
+			item.isFavor = false
+		end
+	end
+	self.pressedbutton = nil
+	ISScrollingListBox.onMouseUp(self, x, y)
+end
+
+function ModListBox:onMouseUpOutside(x, y)
+	self.pressedbutton = nil
+--	ISScrollingListBox.onMouseUpOutside(self, x, y) -- call error "attempted index: onMouseUpOutside of non-table" when "reload lua" and mouse cursor outside the panel
+	if self.vscroll then self.vscroll.scrolling = false end
+end
+
 function ModListBox:onMouseDoubleClick(x, y)
+	if self.mouseoverbutton then return end
+	
 	local item = self.items[self.selected].item
 	print(NRKLOG, "onMouseDoubleClick", item.modInfo:getId())
-	
 	if not item.isAvailable then return end
 	
 	if not item.isActive then
@@ -690,7 +845,7 @@ function ModPanelInfo:createChildren()
 		getText("UI_NRK_ModSelector_Go"), self, self.onGoButton
 	)
 	self.workshopButton.tooltip = getText("UI_NRK_ModSelector_ToWorkshop_tt")
-	self.workshopButton.internal = "workshop"
+	self.workshopButton.internal = "WORKSHOP"
 	self.workshopButton.borderColor = {r=1, g=1, b=1, a=0.1}
 	self.workshopButton:setAnchorLeft(false)
 	self.workshopButton:setAnchorRight(true)
@@ -720,7 +875,7 @@ function ModPanelInfo:createChildren()
 		getText("UI_NRK_ModSelector_Go"), self, self.onGoButton
 	)
 	self.urlButton.tooltip = getText("UI_NRK_ModSelector_ToURL_tt")
-	self.urlButton.link = "url"
+	self.urlButton.internal = "URL"
 	self.urlButton.borderColor = {r=1, g=1, b=1, a=0.1}
 	self.urlButton:setAnchorLeft(false)
 	self.urlButton:setAnchorRight(true)
@@ -748,7 +903,7 @@ function ModPanelInfo:createChildren()
 		getText("UI_NRK_ModSelector_Go"), self, self.onGoButton
 	)
 	self.locationButton.tooltip = getText("UI_NRK_ModSelector_ToLocation_tt")
-	self.locationButton.link = "location"
+	self.locationButton.internal = "LOCATION"
 	self.locationButton.borderColor = {r=1, g=1, b=1, a=0.1}
 	self.locationButton:setAnchorLeft(false)
 	self.locationButton:setAnchorRight(true)
@@ -805,7 +960,7 @@ function ModPanelInfo:prerender()
 			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_PZVersion") .. " " .. item.modInfoExtra.pzversion .. " <LINE> "
 		end
 		if item.modInfoExtra.tags ~= nil then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Tags") .. " " .. item.modInfoExtra.tags .. " <LINE> "
+			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Tags") .. " " .. table.concat(item.modInfoExtra.tags, ", ") .. " <LINE> "
 		end
 		local maps = item.modInfoExtra.maps
 		if maps ~= nil and #maps > 0 then
@@ -936,15 +1091,15 @@ function ModPanelInfo:onMouseWheel(del)
 end
 
 function ModPanelInfo:onGoButton(button)
-	if button.internal == "url" then
+	if button.internal == "URL" then
 		if isSteamOverlayEnabled() then
 			activateSteamOverlayToWebPage(self.urlEntry.title)
 		else
 			openUrl(self.urlEntry.title)
 		end
-	elseif button.internal == "workshop" then
+	elseif button.internal == "WORKSHOP" then
 		activateSteamOverlayToWorkshopItem(self.workshopEntry.title)
-	elseif button.internal == "location" then
+	elseif button.internal == "LOCATION" then
 		showFolderInDesktop(self.locationEntry.title)
 	end
 end

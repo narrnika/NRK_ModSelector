@@ -6,7 +6,7 @@ name_extra=UI_NRK_ModSelector_Name
 description=Upgrade ModSelector menu <LINE> Completely replaces file ModSelector.lua
 description_extra=UI_NRK_ModSelector_Desc
 
-modversion=2
+modversion=3
 pzversion=41.39
 tags=MainMenu, UI
 authors=Narrnika
