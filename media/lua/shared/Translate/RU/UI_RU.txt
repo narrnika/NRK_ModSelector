@@ -23,6 +23,7 @@ UI_RU = {
 	UI_NRK_ModSelector_Filter_DisabledFlag = "выключенные (%1)",
 	UI_NRK_ModSelector_Filter_AvailableFlag = "доступные (%1)",
 	UI_NRK_ModSelector_Filter_BrokenFlag = "не доступные (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "Отображать все моды (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Искать:",
 	UI_NRK_ModSelector_Filter_ByName = "по имени,",

@@ -12,6 +12,7 @@ UI_EN = {
 	UI_NRK_ModSelector_Filter_DisabledFlag = "disabled (%1)",
 	UI_NRK_ModSelector_Filter_AvailableFlag = "available (%1)",
 	UI_NRK_ModSelector_Filter_BrokenFlag = "broken (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "Show all mods (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Search:",
 	UI_NRK_ModSelector_Filter_ByName = "by name,",

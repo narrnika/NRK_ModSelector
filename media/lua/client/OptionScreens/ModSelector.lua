@@ -22,7 +22,7 @@ local FONT_HGT_LARGE = getTextManager():getFontHeight(UIFont.Large)
 
 local BUTTON_HGT = math.max(25, FONT_HGT_SMALL + 3 * 2)
 local BUTTON_WDH = 100
-local DX, DY = 10, 5
+local DX, DY = 9, 6
 
 local DEFAULT_ICON = getTexture("media/ui/DefaultIcon.png")
 local MAP_ICON = getTexture("media/ui/MapIcon.png")
@@ -58,10 +58,10 @@ function ModSelector:create() -- call from MainScreen.lua
 	self.titleLabel:setX((self.width - self.titleLabel:getWidth())/2)
 	self:addChild(self.titleLabel)
 	
-	self.filterPanel = ModPanelFilter:new(DX, FONT_HGT_TITLE + DY*2, halfW, BUTTON_HGT*3)
+	self.filterPanel = ModPanelFilter:new(DX, FONT_HGT_TITLE + DY*2, halfW, BUTTON_HGT*4 + DY*2)
 	self:addChild(self.filterPanel)
 	
-	self.listBox = ModListBox:new(DX, self.filterPanel:getBottom(), halfW, self.height - (self.filterPanel:getBottom() + BUTTON_HGT + DY*2))
+	self.listBox = ModListBox:new(DX, self.filterPanel:getBottom() + DY, halfW, self.height - (self.filterPanel:getBottom() + BUTTON_HGT + DY*3))
 	self:addChild(self.listBox)
 	
 	self.posterPanel = ModPanelPoster:new(halfW + DX*2, FONT_HGT_TITLE + DY*2, halfW, halfH)
@@ -223,9 +223,9 @@ function ModSelector:onResolutionChange(oldw, oldh, neww, newh) -- call from Mai
 	self.titleLabel:setX((self.width - self.titleLabel:getWidth())/2)
 	
 	self.filterPanel:setWidth(halfW)
+	self.filterPanel:resize()
 	
 	self.listBox:setWidth(halfW)
-	self.listBox:setHeight(self.height - (self.filterPanel:getBottom() + BUTTON_HGT + DY*2))
 	self.listBox.btn.x1 = halfW - (self.listBox.btn.w1 + DX)
 	self.listBox.btn.x2 = halfW - (self.listBox.btn.w2 + DX)
 	
@@ -233,6 +233,7 @@ function ModSelector:onResolutionChange(oldw, oldh, neww, newh) -- call from Mai
 	self.posterPanel:setX(halfW + DX*2)
 	self.posterPanel:setWidth(halfW)
 	self.posterPanel:setHeight(halfH)
+	self.posterPanel:update()
 	
 	self.infoPanel:setX(halfW + DX*2)
 	self.infoPanel:setWidth(halfW)
@@ -260,7 +261,7 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 	print(NRKLOG, "populateListBox, ", directories)
 	self.listBox:clear()
 	local modIDs = {}
-	local counts = {withmap = 0, withoutmap = 0, fromlocal = 0, fromworkshop = 0, enabled = 0, disabled = 0, available = 0, broken = 0}
+	local counts = {withmap = 0, fromworkshop = 0, enabled = 0, available = 0}
 	local activeMods = (self.loadGameFolder or self.isNewGame) and ActiveMods.getById("currentGame") or ActiveMods.getById("default")
 	
 	for _, directory in ipairs(directories) do
@@ -271,9 +272,9 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 				item.modInfoExtra = self:readInfoExtra(modID)
 				item.isActive = activeMods:isModActive(modID)
 				
-				if item.modInfoExtra.withMap then counts.withmap = counts.withmap + 1 else counts.withoutmap = counts.withoutmap + 1 end
-				if item.modInfo:getWorkshopID() then counts.fromworkshop = counts.fromworkshop + 1 else counts.fromlocal = counts.fromlocal + 1 end
-				if item.isActive then counts.enabled = counts.enabled + 1 else counts.disabled = counts.disabled + 1 end
+				if item.modInfoExtra.withMap then counts.withmap = counts.withmap + 1 end
+				if item.modInfo:getWorkshopID() then counts.fromworkshop = counts.fromworkshop + 1 end
+				if item.isActive then counts.enabled = counts.enabled + 1 end
 				
 				self.listBox:addItem(item.modInfo:getName(), item)
 				modIDs[modID] = true
@@ -285,11 +286,12 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 	for _, item in ipairs(self.listBox.items) do
 		if item.item.isAvailable == nil then
 			item.item.isAvailable = self:checkRequire(item.item.modInfo:getId())
-			if item.item.isAvailable then counts.available = counts.available + 1 else counts.broken = counts.broken + 1 end
+			if item.item.isAvailable then counts.available = counts.available + 1 end
 		end
 	end
 	
-	self.listBox.counts = counts
+	self.filterPanel:update(counts)
+	self.filterPanel:resize()
 	
 	-- mark mods activated by require
 	-- TODO: make as function
@@ -390,89 +392,114 @@ function ModPanelFilter:new(x, y, width, height)
 	local o = ISPanelJoypad:new(x, y, width, height)
 	setmetatable(o, self)
 	self.__index = self
-	o.background = false
 	return o
 end
 
 function ModPanelFilter:createChildren()
-	-- line 1
 	self.filterLabel = ISLabel:new(
-		0, 0, BUTTON_HGT, getText("UI_NRK_ModSelector_Filter_FilterLabel"),
+		DX, DY, BUTTON_HGT, getText("UI_NRK_ModSelector_Filter_FilterLabel"),
 		1, 1, 1, 1, UIFont.Small, true
 	)
 	self:addChild(self.filterLabel)
 	
-	self.mapTickBox = ISTickBox:new(self.filterLabel:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
+	self.allButton = ISButton:new(
+		self.width - (BUTTON_WDH + DX), DY, BUTTON_WDH, BUTTON_HGT,
+		getText("UI_NRK_ModSelector_Filter_AllButton", 999), self,
+		function ()
+			self.mapTickBox.selected[1] = true
+			self.mapTickBox.selected[2] = true
+			self.locationTickBox.selected[1] = true
+			self.locationTickBox.selected[2] = true
+			self.statusTickBox.selected[1] = true
+			self.statusTickBox.selected[2] = true
+			self.availabilityTickBox.selected[1] = true
+			self.availabilityTickBox.selected[2] = true
+		end
+	)
+	self.allButton.borderColor = {r=1, g=1, b=1, a=0.1}
+	self.allButton:setWidthToTitle(BUTTON_WDH)
+	self.allButton:setX(self.width - (DX + self.allButton.width))
+	self.allButton:setAnchorLeft(false)
+	self.allButton:setAnchorRight(true)
+	self:addChild(self.allButton)
+	
+	-- line 1
+	local y1 = self.allButton:getBottom()
+	
+	self.mapTickBox = ISTickBox:new(DX, y1, BUTTON_WDH, BUTTON_HGT*2)
 	self.mapTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithmapFlag", 0), nil)
-	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", 0), nil)
+	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithmapFlag", 999), 999)
+	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", 999), 999)
 	self.mapTickBox:setWidthToFit()
 	self.mapTickBox.selected[1] = true
 	self.mapTickBox.selected[2] = true
 	self:addChild(self.mapTickBox)
 	
-	self.locationTickBox = ISTickBox:new(self.mapTickBox:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
+	self.locationTickBox = ISTickBox:new(self.mapTickBox:getRight() + DX, y1, BUTTON_WDH, BUTTON_HGT*2)
 	self.locationTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_LocalFlag", 0), nil)
-	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WorkshopFlag", 0), nil)
+	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_LocalFlag", 999), 999)
+	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WorkshopFlag", 999), 999)
 	self.locationTickBox:setWidthToFit()
 	self.locationTickBox.selected[1] = true
 	self.locationTickBox.selected[2] = true
 	self:addChild(self.locationTickBox)
 	
-	self.statusTickBox = ISTickBox:new(self.locationTickBox:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
+	self.statusTickBox = ISTickBox:new(self.locationTickBox:getRight() + DX, y1, BUTTON_WDH, BUTTON_HGT*2)
 	self.statusTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_EnabledFlag", 0), nil)
-	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_DisabledFlag", 0), nil)
+	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_EnabledFlag", 999), 999)
+	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_DisabledFlag", 999), 999)
 	self.statusTickBox:setWidthToFit()
 	self.statusTickBox.selected[1] = true
 	self.statusTickBox.selected[2] = true
 	self:addChild(self.statusTickBox)
 	
-	self.availabilityTickBox = ISTickBox:new(self.statusTickBox:getRight() + DX, 0, BUTTON_WDH, BUTTON_HGT*2)
+	self.availabilityTickBox = ISTickBox:new(self.statusTickBox:getRight() + DX, y1, BUTTON_WDH, BUTTON_HGT*2)
 	self.availabilityTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_AvailableFlag", 0), nil)
-	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_BrokenFlag", 0), nil)
+	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_AvailableFlag", 999), 999)
+	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_BrokenFlag", 999), 999)
 	self.availabilityTickBox:setWidthToFit()
 	self.availabilityTickBox.selected[1] = true
 	self.availabilityTickBox.selected[2] = true
 	self:addChild(self.availabilityTickBox)
 	
 	-- line 2
+	local y2 = self.availabilityTickBox:getBottom() + DY*3
+	
 	self.searchLabel = ISLabel:new(
-		0, self.availabilityTickBox:getBottom() + DY, BUTTON_HGT, getText("UI_NRK_ModSelector_Filter_SearchLabel"),
+		DX, y2, BUTTON_HGT, getText("UI_NRK_ModSelector_Filter_SearchLabel"),
 		1, 1, 1, 1, UIFont.Small, true
 	)
 	self:addChild(self.searchLabel)
 	
 	self.searchEntryBox = ISTextEntryBox:new("",
-		self.searchLabel:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 3,
-		BUTTON_WDH*2, FONT_HGT_SMALL + 3
+		self.searchLabel:getRight() + DX, y2 + 3,
+		BUTTON_WDH*2, FONT_HGT_SMALL + 4
 	)
 	self:addChild(self.searchEntryBox)
+	self.searchEntryBox:setClearButton(true)
 	
-	self.nameTickBox = ISTickBox:new(self.searchEntryBox:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 2, BUTTON_WDH, BUTTON_HGT)
+	self.nameTickBox = ISTickBox:new(self.searchEntryBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
 	self.nameTickBox.choicesColor = {r=1, g=1, b=1, a=1}
 	self.nameTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByName"), nil)
 	self.nameTickBox:setWidthToFit()
 	self.nameTickBox.selected[1] = true
 	self:addChild(self.nameTickBox)
 	
-	self.descTickBox = ISTickBox:new(self.nameTickBox:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 2, BUTTON_WDH, BUTTON_HGT)
+	self.descTickBox = ISTickBox:new(self.nameTickBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
 	self.descTickBox.choicesColor = {r=1, g=1, b=1, a=1}
 	self.descTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByDesc"), nil)
 	self.descTickBox:setWidthToFit()
 	self.descTickBox.selected[1] = false
 	self:addChild(self.descTickBox)
 	
-	self.tagsTickBox = ISTickBox:new(self.descTickBox:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 2, BUTTON_WDH, BUTTON_HGT)
+	self.tagsTickBox = ISTickBox:new(self.descTickBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
 	self.tagsTickBox.choicesColor = {r=1, g=1, b=1, a=1}
 	self.tagsTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByTags"), nil)
 	self.tagsTickBox:setWidthToFit()
 	self.tagsTickBox.selected[1] = false
 	self:addChild(self.tagsTickBox)
 	
-	self.mapsTickBox = ISTickBox:new(self.tagsTickBox:getRight() + DX, self.availabilityTickBox:getBottom() + DY + 2, BUTTON_WDH, BUTTON_HGT)
+	self.mapsTickBox = ISTickBox:new(self.tagsTickBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
 	self.mapsTickBox.choicesColor = {r=1, g=1, b=1, a=1}
 	self.mapsTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByMaps"), nil)
 	self.mapsTickBox:setWidthToFit()
@@ -480,33 +507,93 @@ function ModPanelFilter:createChildren()
 	self:addChild(self.mapsTickBox)
 end
 
-function ModPanelFilter:prerender()
-	local counts = self.parent.listBox.counts
-	-- TODO: disabled = all - enabled, available = all - broken, ...?
-	self.mapTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_WithmapFlag", counts.withmap)
-	self.mapTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_WithmapFlag", counts.withmap)
-	self.mapTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", counts.withoutmap)
-	self.mapTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", counts.withoutmap)
-	self.locationTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_LocalFlag", counts.fromlocal)
-	self.locationTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_LocalFlag", counts.fromlocal)
-	self.locationTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_WorkshopFlag", counts.fromworkshop)
-	self.locationTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_WorkshopFlag", counts.fromworkshop)
-	self.statusTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", counts.enabled)
-	self.statusTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", counts.enabled)
-	self.statusTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", counts.disabled)
-	self.statusTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", counts.disabled)
-	self.availabilityTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_AvailableFlag", counts.available)
-	self.availabilityTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_AvailableFlag", counts.available)
-	self.availabilityTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_BrokenFlag", counts.broken)
-	self.availabilityTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_BrokenFlag", counts.broken)
-	
-	ISPanelJoypad.prerender(self)
+function ModPanelFilter:update(counts)
+	if type(counts) == "table" then
+		local all = self.parent.listBox.count
+		self.allButton:setTitle(getText("UI_NRK_ModSelector_Filter_AllButton", all))
+		
+		self.mapTickBox.optionData[1] = counts.withmap
+		self.mapTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_WithmapFlag", counts.withmap)
+		self.mapTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_WithmapFlag", counts.withmap)
+		self.mapTickBox.optionData[2] = all - counts.withmap
+		self.mapTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", all - counts.withmap)
+		self.mapTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", all - counts.withmap)
+		
+		self.locationTickBox.optionData[1] = all - counts.fromworkshop
+		self.locationTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_LocalFlag", all - counts.fromworkshop)
+		self.locationTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_LocalFlag", all - counts.fromworkshop)
+		self.locationTickBox.optionData[2] = counts.fromworkshop
+		self.locationTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_WorkshopFlag", counts.fromworkshop)
+		self.locationTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_WorkshopFlag", counts.fromworkshop)
+		
+		self.statusTickBox.optionData[1] = counts.enabled
+		self.statusTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", counts.enabled)
+		self.statusTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", counts.enabled)
+		self.statusTickBox.optionData[2] = all - counts.enabled
+		self.statusTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", all - counts.enabled)
+		self.statusTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", all - counts.enabled)
+		
+		self.availabilityTickBox.optionData[1] = counts.available
+		self.availabilityTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_AvailableFlag", counts.available)
+		self.availabilityTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_AvailableFlag", counts.available)
+		self.availabilityTickBox.optionData[2] = all - counts.available
+		self.availabilityTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_BrokenFlag", all- counts.available)
+		self.availabilityTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_BrokenFlag", all - counts.available)
+	elseif type(counts) == "number" then
+		self.statusTickBox.optionData[1] = self.statusTickBox.optionData[1] + counts
+		self.statusTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", self.statusTickBox.optionData[1])
+		self.statusTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", self.statusTickBox.optionData[1])
+		self.statusTickBox.optionData[2] = self.statusTickBox.optionData[2] - counts
+		self.statusTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", self.statusTickBox.optionData[2])
+		self.statusTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", self.statusTickBox.optionData[2])
+	end
 end
 
-function ModPanelFilter:onResize()
-	ISUIElement.onResize(self)
+function ModPanelFilter:resize()
+	-- line 1
+	local w = {self.mapTickBox.width, self.locationTickBox.width, self.statusTickBox.width, self.availabilityTickBox.width}
+	if self.width >= math.max(w[1], w[2], w[3])*3 + w[4] + DX*5 then
+		local w = (self.width - DX*5 - w[4])/3
+		self.locationTickBox:setX(w + DX*2)
+		self.statusTickBox:setX(w*2 + DX*3)
+		self.availabilityTickBox:setX(w*3 + DX*4)
+	elseif self.width >= w[1] + w[2] + w[3] + w[4] + DX*5 then
+		self.locationTickBox:setX(w[1] + DX*2)
+		self.statusTickBox:setX(w[1] + w[2] + DX*3)
+		self.availabilityTickBox:setX(w[1] + w[2] + w[3] + DX*4)
+	else
+		self.locationTickBox:setX(w[1] + DX)
+		self.statusTickBox:setX(w[1] + w[2] + DX)
+		self.availabilityTickBox:setX(w[1] + w[2] + w[3] + DX)
+	end
 	
-	-- TODO
+	-- line 2
+	w = {self.searchLabel.width, BUTTON_WDH, self.nameTickBox.width, self.descTickBox.width, self.tagsTickBox.width, self.mapsTickBox.width}
+	if self.width >= w[1] + w[2] + w[3] + w[4] + w[5] + w[6] + DX*7 then
+		self.searchEntryBox:setWidth(self.width - (w[1] + w[3] + w[4] + w[5] + w[6] + DX*7))
+		self.nameTickBox:setX(self.searchEntryBox:getRight() + DX)
+		self.descTickBox:setX(self.nameTickBox:getRight() + DX)
+		self.tagsTickBox:setX(self.descTickBox:getRight() + DX)
+		self.mapsTickBox:setX(self.tagsTickBox:getRight() + DX)
+		self.nameTickBox:setY(self.searchLabel.y + 2)
+		self.descTickBox:setY(self.searchLabel.y + 2)
+		self.tagsTickBox:setY(self.searchLabel.y + 2)
+		self.mapsTickBox:setY(self.searchLabel.y + 2)
+	else
+		self.searchEntryBox:setWidth(self.width - (self.searchEntryBox.x + DX))
+		self.nameTickBox:setX(self.searchEntryBox.x)
+		self.descTickBox:setX(self.nameTickBox:getRight() + DX)
+		self.tagsTickBox:setX(self.descTickBox:getRight() + DX)
+		self.mapsTickBox:setX(self.tagsTickBox:getRight() + DX)
+		self.nameTickBox:setY(self.searchEntryBox:getBottom())
+		self.descTickBox:setY(self.searchEntryBox:getBottom())
+		self.tagsTickBox:setY(self.searchEntryBox:getBottom())
+		self.mapsTickBox:setY(self.searchEntryBox:getBottom())
+	end
+	
+	self:setHeight(math.max(self.searchEntryBox:getBottom(), self.nameTickBox:getBottom()) + DY)
+	self.parent.listBox:setY(self:getBottom() + DY)
+	self.parent.listBox:setHeight(self.parent.height - (self.parent.listBox.y + BUTTON_HGT + DY*2))
 end
 
 
@@ -687,8 +774,7 @@ function ModListBox:doActive(item, byRequire)
 	local modID = item.modInfo:getId()
 	print(NRKLOG, "do Active", modID, byRequire)
 	if item.isActive == false then
-		self.counts.enabled = self.counts.enabled + 1
-		self.counts.disabled = self.counts.disabled - 1
+		self.parent.filterPanel:update(1)
 	end
 	
 	if not byRequire then
@@ -726,8 +812,7 @@ function ModListBox:doInactive(item, byRequire)
 		end
 		if #new_active == 0 then
 			item.isActive = false
-			self.counts.enabled = self.counts.enabled - 1
-			self.counts.disabled = self.counts.disabled + 1
+			self.parent.filterPanel:update(-1)
 			if requiresDown and not requiresDown:isEmpty() then
 				for i = 0, requiresDown:size() - 1 do
 					self:doInactive(self:getItemById(requiresDown:get(i)).item, modID)
@@ -738,8 +823,7 @@ function ModListBox:doInactive(item, byRequire)
 		end
 	else
 		item.isActive = false
-		self.counts.enabled = self.counts.enabled - 1
-		self.counts.disabled = self.counts.disabled + 1
+		self.parent.filterPanel:update(-1)
 		if requiresDown and not requiresDown:isEmpty() then
 			for i = 0, requiresDown:size() - 1 do
 				self:doInactive(self:getItemById(requiresDown:get(i)).item, modID)
@@ -760,6 +844,22 @@ function ModListBox:getItemById(modID)
 	return nil
 end
 
+function ModListBox:onMouseMove(dx, dy)
+	if self:isMouseOverScrollBar() then
+		self.mouseoverbutton = nil
+		return
+	end
+	self.mouseoverselected = self:rowAt(self:getMouseX(), self:getMouseY())
+	if self.mouseoverbutton and self.mouseoverbutton.selected ~= self.mouseoverselected then
+		self.mouseoverbutton = nil
+	end
+end
+
+function ModListBox:onMouseMoveOutside(x, y)
+	self.mouseoverselected = -1
+	self.mouseoverbutton = nil
+end
+
 function ModListBox:onMouseDown(x, y)
 	if self.mouseoverbutton then
 		self.pressedbutton = self.mouseoverbutton
@@ -770,7 +870,6 @@ end
 
 function ModListBox:onMouseUp(x, y)
 	if self.mouseoverbutton and self.pressedbutton and self.mouseoverbutton.internal == self.pressedbutton.internal and self.mouseoverbutton.selected == self.pressedbutton.selected then
-		print(NRKLOG, "onMouseUp, click = ", self.pressedbutton.internal, self.pressedbutton.selected)
 		local item = self.items[self.pressedbutton.selected].item
 		if self.pressedbutton.internal == "ON" then
 			self:doActive(item)
@@ -784,9 +883,12 @@ function ModListBox:onMouseUp(x, y)
 			-- TODO: check require ?!!!
 			item.isFavor = false
 		end
+		self.mouseoverbutton = nil
+		self.pressedbutton = nil
+	else
+		self.pressedbutton = nil
+		ISScrollingListBox.onMouseUp(self, x, y)
 	end
-	self.pressedbutton = nil
-	ISScrollingListBox.onMouseUp(self, x, y)
 end
 
 function ModListBox:onMouseUpOutside(x, y)
@@ -796,10 +898,12 @@ function ModListBox:onMouseUpOutside(x, y)
 end
 
 function ModListBox:onMouseDoubleClick(x, y)
-	if self.mouseoverbutton then return end
+	if self.mouseoverbutton then
+		self.pressedbutton = self.mouseoverbutton
+		return
+	end
 	
 	local item = self.items[self.selected].item
-	print(NRKLOG, "onMouseDoubleClick", item.modInfo:getId())
 	if not item.isAvailable then return end
 	
 	if not item.isActive then
@@ -1112,68 +1216,111 @@ function ModPanelPoster:new(x, y, width, height)
 	setmetatable(o, self)
 	self.__index = self
 	o.selectedmod = 0
-	o.sourceposter = 0
-	o.nextposter = 0
+	o.selectedposter = 0
+	o.expanded = false
+	o.textures = {}
 	return o
 end
 
 function ModPanelPoster:createChildren()
-	local w, h = 3*self.width/4, 3*self.height/4
+	local w, h = 2*self.width/3, 2*self.height/3
 	local x, y = (self.width - w)/2, (self.height - h)/2
 	
 	self.leftImage = ISImage:new(DX, y + h/4, w/2, h/2, nil)
-	self.leftImage.scaledWidth = w/2
-	self.leftImage.scaledHeight = h/2
 	self.leftImage.target = self
 	self.leftImage.onclick = self.prevPoster
 	self:addChild(self.leftImage)
 	
 	self.rightImage = ISImage:new(self.width - (DX + w/2), y + h/4, w/2, h/2, nil)
-	self.rightImage.scaledWidth = w/2
-	self.rightImage.scaledHeight = h/2
 	self.rightImage.target = self
 	self.rightImage.onclick = self.nextPoster
 	self:addChild(self.rightImage)
 	
 	self.centerImage = ISImage:new(x, y, w, h, nil)
-	self.centerImage.scaledWidth = w
-	self.centerImage.scaledHeight = h
 	self.centerImage.font = UIFont.Medium
+	self.centerImage.target = self
+	self.centerImage.onclick = self.expandPoster
 	self:addChild(self.centerImage)
 end
 
 function ModPanelPoster:prerender()
-	-- TODO: add to onResolutionChange
-	-- TODO: scale with save ratio
-	local i = self.parent.listBox.selected
-	if self.selectedmod ~= i then
-		local modInfo = self.parent.listBox.items[i].item.modInfo
+	local index = self.parent.listBox.selected
+	if self.selectedmod ~= index then
+		local modInfo = self.parent.listBox.items[index].item.modInfo
 		self.textures = {}
 		self.postercount = modInfo:getPosterCount()
-		if self.postercount == 0 then
-			self.centerImage.name = getText("UI_NRK_ModSelector_NoPoster")
-			self.centerImage:setX((self.width - (getTextManager():MeasureStringX(self.centerImage.font, self.centerImage.name)))/2)
-		else
-			self.centerImage.name = ""
-			self.centerImage:setX((self.width - self.centerImage.width)/2)
-			for id = 0, modInfo:getPosterCount() - 1 do
-				table.insert(self.textures, getTexture(modInfo:getPoster(id)))
-			end
+		for id = 0, modInfo:getPosterCount() - 1 do
+			table.insert(self.textures, getTexture(modInfo:getPoster(id)))
 		end
 		
-		self.sourceposter = 0
-		self.nextposter = 1
-		self.selectedmod = i
-	end
-	
-	if self.sourceposter ~= self.nextposter then
-		self.leftImage.texture = self.textures[self.nextposter - 1]
-		self.centerImage.texture = self.textures[self.nextposter]
-		self.rightImage.texture = self.textures[self.nextposter + 1]
-		self.sourceposter = self.nextposter
+		self.selectedmod = index
+		self.selectedposter = math.min(#self.textures, 1)
+		self.expanded = false
+		self:update()
 	end
 	
 	ISPanelJoypad.prerender(self)
+end
+
+function ModPanelPoster:update()
+	if #self.textures == 0 then
+		self.centerImage.name = getText("UI_NRK_ModSelector_NoPoster")
+		self.centerImage:setWidth(getTextManager():MeasureStringX(self.centerImage.font, self.centerImage.name))
+		self.centerImage:setHeight(getTextManager():getFontHeight(self.centerImage.font))
+		self.centerImage:setX((self.width - self.centerImage.width)/2)
+		self.centerImage:setY((self.height - self.centerImage.height)/2)
+		self.centerImage.texture = nil
+		self.leftImage.texture = nil
+		self.rightImage.texture = nil
+	elseif #self.textures == 1 or self.expanded then
+		self.centerImage.name = ""
+		local texture = self.textures[self.selectedposter]
+		local k = math.min((self.width - 4)/texture:getWidth(), (self.height - 4)/texture:getHeight())
+		local w, h = texture:getWidth()*k, texture:getHeight()*k
+		self.centerImage.scaledWidth = w
+		self.centerImage.scaledHeight = h
+		self.centerImage:setWidth(w)
+		self.centerImage:setHeight(h)
+		self.centerImage:setX((self.width - w)/2)
+		self.centerImage:setY((self.height - h)/2)
+		self.centerImage.texture = texture
+		self.leftImage.texture = nil
+		self.rightImage.texture = nil
+	else
+		self.centerImage.name = ""
+		local w, h = 2*self.width/3, 2*self.height/3
+		local x, y = (self.width - w)/2, (self.height - h)/2
+		local textures = {
+			leftImage = {
+				texture = self.textures[self.selectedposter - 1],
+				w_def = w/2, h_def = h/2,
+				x_def = x - (w/2)/3, y_def = y + (h/2)/2
+			},
+			centerImage = {
+				texture = self.textures[self.selectedposter],
+				w_def = w, h_def = h,
+				x_def = x, y_def = y
+			},
+			rightImage = {
+				texture = self.textures[self.selectedposter + 1],
+				w_def = w/2, h_def = h/2,
+				x_def = x + w - 2*(w/2)/3, y_def = y + (h/2)/2
+			}
+		}
+		for i, t in pairs(textures) do
+			if t.texture then
+				local k = math.min(t.w_def/t.texture:getWidth(), t.h_def/t.texture:getHeight())
+				local w_new, h_new = t.texture:getWidth()*k, t.texture:getHeight()*k
+				self[i].scaledWidth = w_new
+				self[i].scaledHeight = h_new
+				self[i]:setWidth(w_new)
+				self[i]:setHeight(h_new)
+				self[i]:setX(t.x_def + (t.w_def - w_new)/2)
+				self[i]:setY(t.y_def + (t.h_def - h_new)/2)
+			end
+			self[i].texture = t.texture
+		end
+	end
 end
 
 --[[function ModPanelPoster:render()
@@ -1190,22 +1337,32 @@ end
 	end
 end]]
 
+function ModPanelPoster:expandPoster()
+	if #self.textures > 1 then
+		self.expanded = not self.expanded
+		self:update()
+	end
+end
+
 function ModPanelPoster:prevPoster()
-	if self.sourceposter > 1 then
-		self.nextposter = self.sourceposter - 1
+	if self.selectedposter > 1 then
+		self.selectedposter = self.selectedposter - 1
+		self:update()
 	end
 end
 
 function ModPanelPoster:nextPoster()
-	if self.sourceposter < self.postercount then
-		self.nextposter = self.sourceposter + 1
+	if self.selectedposter < self.postercount then
+		self.selectedposter = self.selectedposter + 1
+		self:update()
 	end
 end
 
 function ModPanelPoster:onMouseWheel(step)
-	self.nextposter = self.sourceposter + step
-	if self.nextposter >= self.postercount then self.nextposter = self.postercount end
-	if self.nextposter <= 1 then self.nextposter = 1 end
+	self.selectedposter = self.selectedposter + step
+	if self.selectedposter > self.postercount then self.selectedposter = self.postercount end
+	if self.selectedposter < 1 then self.selectedposter = 1 end
+	self:update()
 --	return true
 end
 
