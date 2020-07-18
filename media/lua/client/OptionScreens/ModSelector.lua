@@ -147,14 +147,66 @@ end
 
 function ModSelector:onAccept()
 	self:setVisible(false)
+	print(NRKLOG, "accept pressed")
+	
+	local oldFavors, newFavors = {}, {}
+	for _, modId in ipairs(self.savePanel.savelist["FavorList"] or {}) do
+		oldFavors[modId] = true
+	end
+	for _, item in ipairs(self.listBox.items) do
+		if item.item.isFavor then
+			newFavors[item.item.modInfo:getId()] = true
+		end
+	end
+	
+	local addFavors, delFavors = {}, {}
+	for modId, _ in pairs(oldFavors) do
+		if not newFavors[modId] then table.insert(delFavors, modId) end
+	end
+	for modId, _ in pairs(newFavors) do
+		if not oldFavors[modId] then table.insert(addFavors, modId) end
+	end
+	
+	if #addFavors > 0 or #delFavors > 0 then -- favor list has been changed
+		print(NRKLOG, "accept change favor-list")
+		-- change mod list of saves
+		for _, folder in ipairs(getFullSaveDirectoryTable()) do
+			local info = getSaveInfo(folder)
+			local activeMods = info.activeMods or ActiveMods.getById("default")
+			ActiveMods.getById("currentGame"):copyFrom(activeMods)
+			for _, modId in ipairs(addFavors) do
+				ActiveMods.getById("currentGame"):setModActive(modId, true)
+			end
+			for _, modId in ipairs(delFavors) do
+				ActiveMods.getById("currentGame"):setModActive(modId, false)
+			end
+			manipulateSavefile(folder, "WriteModsDotTxt")
+		end
+		
+		-- change global mod list
+		for _, modId in ipairs(addFavors) do
+			ActiveMods.getById("default"):setModActive(modId, true)
+		end
+		for _, modId in ipairs(delFavors) do
+			ActiveMods.getById("default"):setModActive(modId, false)
+		end
+		saveModsFile()
+		
+		-- save new favor list
+		self.savePanel.savelist["FavorList"] = {}
+		for modId, _ in pairs(newFavors) do
+			table.insert(self.savePanel.savelist["FavorList"], modId)
+		end
+		table.sort(self.savePanel.savelist["FavorList"])
+		self.savePanel:writeModList()
+	end
 	
 	if self.loadGameFolder then
 		print(NRKLOG, "accept for LoadGameScreen")
 		local saveFolder = self.loadGameFolder
 		self.loadGameFolder = nil
 		for _, item in ipairs(self.listBox.items) do
-			local active = item.item.isActive == true or (type(item.item.isActive) == "table" and #item.item.isActive > 0)
-			ActiveMods.getById("currentGame"):setModActive(item.item.modInfo:getId(), active)
+			ActiveMods.getById("currentGame"):setModActive(item.item.modInfo:getId(), item.item.isActive)
 		end
 		manipulateSavefile(saveFolder, "WriteModsDotTxt")
 		LoadGameScreen.instance:onSavefileModsChanged(saveFolder)
@@ -166,8 +218,7 @@ function ModSelector:onAccept()
 		print(NRKLOG, "accept for NewGameScreen")
 		self.isNewGame = nil
 		for _, item in ipairs(self.listBox.items) do
-			local active = item.item.isActive == true or (type(item.item.isActive) == "table" and #item.item.isActive > 0)
-			ActiveMods.getById("currentGame"):setModActive(item.item.modInfo:getId(), active)
+			ActiveMods.getById("currentGame"):setModActive(item.item.modInfo:getId(), item.item.isActive)
 		end
 		NewGameScreen.instance:setVisible(true, self.joyfocus)
 		if ActiveMods.requiresResetLua(ActiveMods.getById("currentGame")) then
@@ -178,8 +229,7 @@ function ModSelector:onAccept()
 	
 	print(NRKLOG, "accept for MainScreen")
 	for _, item in ipairs(self.listBox.items) do
-		local active = item.item.isActive == true or (type(item.item.isActive) == "table" and #item.item.isActive > 0)
-		ActiveMods.getById("default"):setModActive(item.item.modInfo:getId(), active)
+		ActiveMods.getById("default"):setModActive(item.item.modInfo:getId(), item.item.isActive)
 	end
 	saveModsFile()
 	
@@ -258,71 +308,77 @@ function ModSelector:setExistingSavefile(folder) -- call from LoadGameScreen.lua
 end
 
 function ModSelector:populateListBox(directories) -- call from MainScreen.lua, NewGameScreen.lua, LoadGameScreen.lua
-	print(NRKLOG, "populateListBox, ", directories)
-	self.listBox:clear()
-	local modIDs = {}
-	local counts = {withmap = 0, fromworkshop = 0, enabled = 0, available = 0}
-	local activeMods = (self.loadGameFolder or self.isNewGame) and ActiveMods.getById("currentGame") or ActiveMods.getById("default")
+	print(NRKLOG, "populateListBox")
 	
-	for _, directory in ipairs(directories) do
-		local item = {modInfo = getModInfo(directory)}
-		if item.modInfo then -- to avoid errors if the mod has already been removed
-			local modID = item.modInfo:getId()
-			if not modIDs[modID] then
-				item.modInfoExtra = self:readInfoExtra(modID)
-				item.isActive = activeMods:isModActive(modID)
-				
-				if item.modInfoExtra.withMap then counts.withmap = counts.withmap + 1 end
-				if item.modInfo:getWorkshopID() then counts.fromworkshop = counts.fromworkshop + 1 end
-				if item.isActive then counts.enabled = counts.enabled + 1 end
-				
-				self.listBox:addItem(item.modInfo:getName(), item)
-				modIDs[modID] = true
+	-- create items
+	self.listBox:clear()
+	self.listBox.indexById = {}
+	for i, directory in ipairs(directories) do
+		local modInfo = getModInfo(directory)
+		if modInfo then -- to avoid errors if the mod has already been removed
+			local modId = modInfo:getId()
+			if not self.listBox.indexById[modId] then
+				self.listBox:addItem(modInfo:getName(), {modInfo = modInfo})
+				self.listBox.indexById[modId] = i
 			end
 		end
 	end
 	
-	-- check in a separate cycle, because the list should already be formed
-	for _, item in ipairs(self.listBox.items) do
-		if item.item.isAvailable == nil then
-			item.item.isAvailable = self:checkRequire(item.item.modInfo:getId())
-			if item.item.isAvailable then counts.available = counts.available + 1 end
-		end
+	-- sort by name and re-index
+	self.listBox:sort()
+	for index, item in ipairs(self.listBox.items) do
+		self.listBox.indexById[item.item.modInfo:getId()] = index
 	end
 	
+	-- write info to items and calculate
+	self.savePanel:updateOptions()
+	local favorList = {}; for _, modId in ipairs(self.savePanel.savelist["FavorList"] or {}) do favorList[modId] = true end
+	local activeMods = (self.loadGameFolder or self.isNewGame) and ActiveMods.getById("currentGame") or ActiveMods.getById("default")
+	local counts = {withmap = 0, fromworkshop = 0, enabled = 0, available = 0}
+	for _, i in ipairs(self.listBox.items) do
+		local item, modId = i.item, i.item.modInfo:getId()
+		
+		if item.modInfo:getWorkshopID() then counts.fromworkshop = counts.fromworkshop + 1 end
+		
+		item.modInfoExtra = self:readInfoExtra(modId)
+		if item.modInfoExtra.maps then counts.withmap = counts.withmap + 1 end
+		
+		if item.isAvailable == nil then item.isAvailable = self:checkRequire(modId) end
+		if item.isAvailable then counts.available = counts.available + 1 end
+		
+		item.isFavor = favorList[modId] or false
+		
+		item.isActive = activeMods:isModActive(modId)
+		if item.isActive then counts.enabled = counts.enabled + 1 end
+	end
+	
+	-- update filter panel
 	self.filterPanel:update(counts)
 	self.filterPanel:resize()
-	
-	-- mark mods activated by require
-	-- TODO: make as function
-	for _, item in ipairs(self.listBox.items) do
-		local modID = item.item.modInfo:getId()
-		local requires = item.item.modInfo:getRequire()
-		if item.item.isActive and requires and not requires:isEmpty() then
-			for i = 0, requires:size() - 1 do
-				local requireItem = self.listBox:getItemById(requires:get(i))
-				if type(requireItem.item.isActive) == "table" then
-					table.insert(requireItem.item.isActive, modID)
-				else
-					requireItem.item.isActive = {modID}
-				end
-			end
-		end
-	end
-	
-	self.listBox:sort()
-	
-	self.savePanel:updateOptions()
 end
 
-function ModSelector:checkRequire(modID)
-	local requires = getModInfoByID(modID):getRequire()
+function ModSelector:checkRequire(modId)
+	local requires = getModInfoByID(modId):getRequire()
 	
 	if requires and not requires:isEmpty() then
 		for i = 0, requires:size() - 1 do
-			local requireID = requires:get(i)
-			if getModInfoByID(requireID) == nil or self:checkRequire(requireID) == false then
+			local requireId = requires:get(i)
+			local index = self.listBox.indexById[requireId]
+			if index == nil then
 				return false
+			else
+				local requireItem = self.listBox.items[index].item
+				if type(requireItem.dependents) == "table" then
+					table.insert(requireItem.dependents, modId)
+				else
+					requireItem.dependents = {modId}
+				end
+				if requireItem.isAvailable == nil then
+					requireItem.isAvailable = self:checkRequire(requireId)
+				end
+				if requireItem.isAvailable == false then
+					return false
+				end
 			end
 		end
 	end
@@ -335,8 +391,7 @@ function ModSelector:readInfoExtra(modID)
 	
 	-- mod with maps?
 	local mapList = getMapFoldersForMod(modID)
-	if mapList ~= nil then
-		modInfoExtra.withMap = true
+	if mapList ~= nil and mapList:size() > 0 then
 		modInfoExtra.maps = {}
 		for i = 0, mapList:size() - 1 do
 			table.insert(modInfoExtra.maps, mapList:get(i))
@@ -348,7 +403,7 @@ function ModSelector:readInfoExtra(modID)
 	if not file then return modInfoExtra end
 	local line = file:readLine()
 	while line ~= nil do
-		--split key and value (no luautils.split)
+		--split key and value (by first "=", no luautils.split)
 		local sep = string.find(line, "=")
 		local key, val = "", ""
 		if sep ~= nil then
@@ -356,7 +411,7 @@ function ModSelector:readInfoExtra(modID)
 			val = luautils.trim(string.sub(line, sep + 1))
 		end
 		-- split lists
-		if key == "authors" or key == "tags" then -- add pzversion?
+		if key == "authors" or key == "tags" then -- TODO: add pzversion for check?
 			val = luautils.split(val, ",")
 			for i, j in ipairs(val) do
 				val[i] = luautils.trim(j)
@@ -371,7 +426,7 @@ function ModSelector:readInfoExtra(modID)
 		if key == "pzversion" then modInfoExtra.pzversion = val end
 		if key == "tags" then modInfoExtra.tags = val end
 		if key == "authors" then modInfoExtra.authors = val end
-		if key == "icon" then modInfoExtra.icon = val end
+		if key == "icon" then modInfoExtra.icon = getTexture(getModInfoByID(modID):getDir() .. getFileSeparator() .. val) end
 		if key == "url" then modInfoExtra.url = val end
 		line = file:readLine()
 	end
@@ -604,7 +659,7 @@ function ModListBox:new(x, y, width, height)
 	setmetatable(o, self)
 	self.__index = self
 	o.drawBorder = true
-	
+	o.indexById = {}
 	o.itemheight = math.max(FONT_HGT_MEDIUM + DY*2, BUTTON_HGT)
 	
 	o.btn = {}
@@ -625,8 +680,9 @@ function ModListBox:new(x, y, width, height)
 	o.item.item.modInfo
 	o.item.item.modInfoExtra = {}
 	o.item.item.isAvailable = true/false
-	o.item.item.isActive = true/false/{modID1, modID2, ...}
+	o.item.item.isActive = true/false
 	o.item.item.isFavor = true/false
+	o.item.item.dependents = {}
 	]]
 	return o
 end
@@ -637,8 +693,8 @@ function ModListBox:checkFilter(item)
 	-- tickbox filter
 	if not filter.locationTickBox.selected[1] and not item.modInfo:getWorkshopID() then return false end
 	if not filter.locationTickBox.selected[2] and item.modInfo:getWorkshopID() then return false end
-	if not filter.mapTickBox.selected[1] and item.modInfoExtra.withMap then return false end
-	if not filter.mapTickBox.selected[2] and not item.modInfoExtra.withMap then return false end
+	if not filter.mapTickBox.selected[1] and item.modInfoExtra.maps then return false end
+	if not filter.mapTickBox.selected[2] and not item.modInfoExtra.maps then return false end
 	if not filter.statusTickBox.selected[1] and item.isActive then return false end
 	if not filter.statusTickBox.selected[2] and not item.isActive then return false end
 	if not filter.availabilityTickBox.selected[1] and item.isAvailable then return false end
@@ -704,61 +760,71 @@ function ModListBox:doDrawButton(text, internal, x, y, w, h)
 	)
 end
 
-function ModListBox:doDrawItem(y, item, alt)
-	local modInfo = item.item.modInfo
-	local modInfoExtra = item.item.modInfoExtra
+function ModListBox:doDrawItem(y, i, alt)
+	local index, item = i.index, i.item
+	if not self:checkFilter(item) then return y end
 	
-	-- Filter
-	if not self:checkFilter(item.item) then return y end
-	
-	-- Draw
-	local h = self.itemheight
-	local s = self:isVScrollBarVisible() and 13 or 0
+	local h, s = self.itemheight, self:isVScrollBarVisible() and 13 or 0
 	
 	-- item bar
-	if self.selected == item.index then
+	if self.selected == index then
 		self:drawRect(0, y, self:getWidth(), h, 0.3, 0.7, 0.35, 0.15)
-	elseif self.mouseoverselected == item.index and not self:isMouseOverScrollBar() then
+	elseif self.mouseoverselected == index and not self:isMouseOverScrollBar() then
 		self:drawRect(0, y, self:getWidth(), h, 0.95, 0.05, 0.05, 0.05)
 	end
 	self:drawRectBorder(0, y, self:getWidth(), h, 0.5, self.borderColor.r, self.borderColor.g, self.borderColor.b)
 	
 	-- icon
-	local icon = modInfoExtra.icon and getTexture(modInfoExtra.icon) or modInfoExtra.withMap and MAP_ICON or DEFAULT_ICON
+	local icon = item.modInfoExtra.icon or item.modInfoExtra.maps and MAP_ICON or DEFAULT_ICON
 	self:drawTextureScaled(icon, DX, y + DY, FONT_HGT_MEDIUM, FONT_HGT_MEDIUM, 1)
-	if item.item.isActive == true then
-		self:drawTexture(ACTIVE_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
-	elseif type(item.item.isActive) == "table" then
-		self:drawTexture(REQUIRE_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
-	end
-	if not item.item.isAvailable then
+	if not item.isAvailable then
 		self:drawTexture(BROKEN_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
-	end
-	if item.item.isFavor then
-		self:drawTexture(FAVORITE_ICON, DX + FONT_HGT_MEDIUM - 6, y + DY, 1)
+	elseif item.isActive then
+		local dependents = {}
+		for _, dependentId in ipairs(item.dependents or {}) do
+			if self.items[self.indexById[dependentId]].item.isActive then
+				table.insert(dependents, dependentId)
+			end
+		end
+		if #dependents > 0 then
+			self:drawTexture(ACTIVE_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
+		else
+			self:drawTexture(REQUIRE_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
+		end
+		if item.isFavor then
+			self:drawTexture(FAVORITE_ICON, DX + FONT_HGT_MEDIUM - 6, y + DY, 1)
+		end
 	end
 	
 	-- title
-	local text, r, g, b = modInfo:getName(), 1, 1, 1
-	if not item.item.isAvailable then
+	local text, r, g, b = item.modInfo:getName(), 1, 1, 1
+	if not item.isAvailable then
 		text = text .. getText("UI_NRK_ModSelector_Status_Broken")
 		g, b = 0.5, 0.5
-	elseif item.item.isActive == true then
-		text = text .. getText("UI_NRK_ModSelector_Status_Enabled")
-		r, b = 0.5, 0.5
-	elseif type(item.item.isActive) == "table" then
-		text = text .. getText("UI_NRK_ModSelector_Status_EnabledBy", table.concat(item.item.isActive, ", "))
-		g, b = 0.7, 0.2
+	elseif item.isActive then
+		local dependents = {}
+		for _, dependentId in ipairs(item.dependents or {}) do
+			if self.items[self.indexById[dependentId]].item.isActive then
+				table.insert(dependents, dependentId)
+			end
+		end
+		if #dependents > 0 then
+			text = text .. getText("UI_NRK_ModSelector_Status_EnabledBy", table.concat(dependents, ", "))
+			g, b = 0.7, 0.2
+		else
+			text = text .. getText("UI_NRK_ModSelector_Status_Enabled")
+			r, b = 0.5, 0.5
+		end
 	end
 	self:drawText(text, DX + FONT_HGT_MEDIUM + DX, y + DY, r, g, b, 1, UIFont.Medium)
 	
 	-- buttons
-	if self.mouseoverselected == item.index and not self:isMouseOverScrollBar() and item.item.isAvailable then
-		if item.item.isFavor then
+	if self.mouseoverselected == index and not self:isMouseOverScrollBar() and item.isAvailable then
+		if item.isFavor then
 			self:doDrawButton(self.btn.text2, "UNFAVOR", self.btn.x1 - s, y + self.btn.dy, self.btn.w1, BUTTON_HGT)
 		else
 			self:doDrawButton(self.btn.text1, "FAVOR", self.btn.x1 - s, y + self.btn.dy, self.btn.w2, BUTTON_HGT)
-			if item.item.isActive then
+			if item.isActive then
 				self:doDrawButton(self.btn.text4, "OFF", self.btn.x2 - s, y + self.btn.dy, self.btn.w2, BUTTON_HGT)
 			else
 				self:doDrawButton(self.btn.text3, "ON", self.btn.x2 - s, y + self.btn.dy, self.btn.w2, BUTTON_HGT)
@@ -770,78 +836,41 @@ function ModListBox:doDrawItem(y, item, alt)
 	return y
 end
 
-function ModListBox:doActive(item, byRequire)
-	local modID = item.modInfo:getId()
-	print(NRKLOG, "do Active", modID, byRequire)
+function ModListBox:doActive(item, doFavor)
+	local modId = item.modInfo:getId()
+	print(NRKLOG, "do Active", modId, doFavor)
+	
 	if item.isActive == false then
+		item.isActive = true
 		self.parent.filterPanel:update(1)
 	end
 	
-	if not byRequire then
-		item.isActive = true
-	else
-		if type(item.isActive) == "table" then
-			table.insert(item.isActive, byRequire)
-		else
-			item.isActive = {byRequire}
-		end
+	if doFavor then
+		item.isFavor = true
 	end
 	
 	local requires = item.modInfo:getRequire()
 	if requires and not requires:isEmpty() then
 		for i = 0, requires:size() - 1 do
-			local requiresID = requires:get(i)
-			self:doActive(self:getItemById(requiresID).item, modID)
+			self:doActive(self.items[self.indexById[requires:get(i)]].item, doFavor)
 		end
 	end
 	
 end
 
-function ModListBox:doInactive(item, byRequire)
+function ModListBox:doInactive(item)
 	if item.isActive == false then return end
 	
-	local modID = item.modInfo:getId()
-	print(NRKLOG, "do Inactive", modID, byRequire)
-	local requiresUp = (type(item.isActive) == "table" and item.isActive) or {}
-	local requiresDown = item.modInfo:getRequire()
+	local modId = item.modInfo:getId()
+	print(NRKLOG, "do Inactive", modId)
 	
-	if byRequire then
-		local new_active = {}
-		for _, id in ipairs(item.isActive) do
-			if id ~= byRequire then table.insert(new_active, id) end
-		end
-		if #new_active == 0 then
-			item.isActive = false
-			self.parent.filterPanel:update(-1)
-			if requiresDown and not requiresDown:isEmpty() then
-				for i = 0, requiresDown:size() - 1 do
-					self:doInactive(self:getItemById(requiresDown:get(i)).item, modID)
-				end
-			end
-		else
-			item.isActive = new_active
-		end
-	else
-		item.isActive = false
-		self.parent.filterPanel:update(-1)
-		if requiresDown and not requiresDown:isEmpty() then
-			for i = 0, requiresDown:size() - 1 do
-				self:doInactive(self:getItemById(requiresDown:get(i)).item, modID)
-			end
-		end
-		for _, id in ipairs(requiresUp) do
-			self:doInactive(self:getItemById(id).item)
-		end
+	item.isActive = false
+	item.isFavor = false
+	self.parent.filterPanel:update(-1)
+	
+	for _, dependentId in ipairs(item.dependents or {}) do
+		self:doInactive(self.items[self.indexById[dependentId]].item)
 	end
-end
-
-function ModListBox:getItemById(modID)
-	for _, item in ipairs(self.items) do
-		if item.item.modInfo:getId() == modID then
-			return item
-		end
-	end
-	return nil
 end
 
 function ModListBox:onMouseMove(dx, dy)
@@ -876,12 +905,9 @@ function ModListBox:onMouseUp(x, y)
 		elseif self.pressedbutton.internal == "OFF" then
 			self:doInactive(item)
 		elseif self.pressedbutton.internal == "FAVOR" then
-			-- TODO: check require ?!!!
-			--self:doActive(item)
-			item.isFavor = true
+			self:doActive(item, true)
 		elseif self.pressedbutton.internal == "UNFAVOR" then
-			-- TODO: check require ?!!!
-			item.isFavor = false
+			self:doInactive(item)
 		end
 		self.mouseoverbutton = nil
 		self.pressedbutton = nil
@@ -1414,8 +1440,18 @@ function ModPanelSave:readModList()
 	local file = getFileReader(self.savefile, true)
 	local line = file:readLine()
 	while line ~= nil do
-		local s = luautils.split(line, ":")
-		self.savelist[s[1]] = luautils.split(s[2], ";")
+		--split name and list (by first ":", no luautils.split)
+		local sep = string.find(line, ":")
+		local save_name, save_list = "", ""
+		if sep ~= nil then
+			save_name = string.sub(line, 0, sep - 1)
+			save_list = string.sub(line, sep + 1)
+		end
+		
+		if save_name ~= "" and save_list ~= "" then
+			self.savelist[save_name] = luautils.split(save_list, ";")
+		end
+		
 		line = file:readLine()
 	end
 	file:close()
@@ -1424,7 +1460,9 @@ end
 function ModPanelSave:writeModList()
 	local file = getFileWriter(self.savefile, true, false)
 	for save_name, save_list in pairs(self.savelist) do
-		file:write(save_name..":"..table.concat(save_list, ";").."\n")
+		if #save_list > 0 then
+			file:write(save_name..":"..table.concat(save_list, ";").."\n")
+		end
 	end
 	file:close()
 end
@@ -1439,7 +1477,7 @@ function ModPanelSave:updateOptions()
 	end
 	self:readModList()
 	for save_name, _ in pairs(self.savelist) do
-		self.saveComboBox:addOptionWithData(save_name, "user")
+		if save_name ~= "FavorList" then self.saveComboBox:addOptionWithData(save_name, "user") end
 	end
 	self.saveComboBox.selected = 0
 	self.delButton:setEnable(false)
@@ -1474,27 +1512,10 @@ function ModPanelSave:onSelected()
 	end
 	
 	for _, item in ipairs(self.parent.listBox.items) do
-		if activeMods[item.item.modInfo:getId()] then
+		if activeMods[item.item.modInfo:getId()] or item.item.isFavor then
 			item.item.isActive = true
 		else
 			item.item.isActive = false
-		end
-	end
-	
-	-- mark mods activated by require
-	-- TODO: make as function
-	for _, item in ipairs(self.parent.listBox.items) do
-		local modID = item.item.modInfo:getId()
-		local requires = item.item.modInfo:getRequire()
-		if item.item.isActive and requires and not requires:isEmpty() then
-			for i = 0, requires:size() - 1 do
-				local requireItem = self.parent.listBox:getItemById(requires:get(i))
-				if type(requireItem.item.isActive) == "table" then
-					table.insert(requireItem.item.isActive, modID)
-				else
-					requireItem.item.isActive = {modID}
-				end
-			end
 		end
 	end
 end
