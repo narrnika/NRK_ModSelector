@@ -1,0 +1,67 @@
+UI_DE = {
+	UI_NRK_ModSelector_Name = "Verbessert mod auswahl",
+	UI_NRK_ModSelector_Desc = "Dieser Mod ersetzt das Menü «MOD AUSWAHL» durch ein funktionales.",
+	
+	
+	UI_NRK_ModSelector_Filter_FilterLabel = "Anzeigen Mods:",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "mit Karten (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "keine Karten (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "lokal (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "workshop (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "aktiviert (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "deaktiviert (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "verfügbar (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "kaputt (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "Anzeigen alle Mods (%1)",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "Suche:",
+	UI_NRK_ModSelector_Filter_ByName = "nach Namen,",
+	UI_NRK_ModSelector_Filter_ByDesc = "nach Beschreibungen,",
+	UI_NRK_ModSelector_Filter_ByTags = "nach Etiketten,",
+	UI_NRK_ModSelector_Filter_ByMaps = "nach Karten",
+	
+	
+	UI_NRK_ModSelector_List_Favorite = "Bevorzugen",
+	UI_NRK_ModSelector_List_Unfavorite = "Nicht Bevorzugen",
+	UI_NRK_ModSelector_List_On = "An",
+	UI_NRK_ModSelector_List_Off = "Aus",
+	
+	UI_NRK_ModSelector_Status_Broken = " (Kaputt)",
+	UI_NRK_ModSelector_Status_Enabled = " (Aktiviert)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (Aktiviert für %1)",
+	
+	
+	UI_NRK_ModSelector_NoPoster = "Kein Bild",
+	
+	
+	UI_NRK_ModSelector_Info_ExtraInfo = "Zusatzinformation"
+	UI_NRK_ModSelector_Info_ModId = "ID:",
+	UI_NRK_ModSelector_Info_ModVersion = "Version:",
+	UI_NRK_ModSelector_Info_PZVersion = "PZ-Version:",
+	UI_NRK_ModSelector_Info_Require = "Benötigt:",
+	UI_NRK_ModSelector_Info_Tags = "Etiketten:",
+	UI_NRK_ModSelector_Info_Maps = "Karten:",
+	UI_NRK_ModSelector_Info_Authors = "Autoren:",
+	
+	UI_NRK_ModSelector_Info_WorkshopLable = "Workshop-ID:",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "Steam-Overlay zu diesem Mod öffnen",
+	UI_NRK_ModSelector_Info_URLLabel = "Link zur Seite:",
+	UI_NRK_ModSelector_Info_URLTooltip = "Hier Klicken, um die Seite der Mod in deinem Webbrowser zu öffnen.",
+	UI_NRK_ModSelector_Info_URLWarning = "(diese Adresse ist kein offizielles Repository für PZ-Mods - Sie folgen ihr auf eigenes Risiko)",
+	UI_NRK_ModSelector_Info_LocationLabel = "Speicherort:",
+	UI_NRK_ModSelector_Info_LocationTooltip = "Dateipfad öffnen",
+	UI_NRK_ModSelector_Info_FollowButton = "Folge dem",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "Mods Listen:",
+	UI_NRK_ModSelector_Save_NoSelection = "[-- ZUM LADEN AUSWÄHLEN --]",
+	UI_NRK_ModSelector_Save_AllDisabled = "Deaktivieren alle Mods",
+	UI_NRK_ModSelector_Save_List_Global = "Aktuelle Liste - global",
+	UI_NRK_ModSelector_Save_List_LastSave = "Aktuelle Liste - letzte Sicherungsdatei",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "Aktuelle Liste - aktuelle Sicherungsdatei",
+	UI_NRK_ModSelector_Save_SaveButton = "SPEICHERN",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "Name:",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "Name darf keine Zeichen enthalten «;» und «:»",
+	UI_NRK_ModSelector_Save_DelButton = "LÖSCHEN",
+	UI_NRK_ModSelector_Save_DelButton_Request = "«%1» wirklich Löschen?",
+}

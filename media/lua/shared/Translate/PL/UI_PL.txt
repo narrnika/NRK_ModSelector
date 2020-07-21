@@ -1,0 +1,66 @@
+UI_PL = {
+	UI_NRK_ModSelector_Name = "Ulepszony wybór modów",
+	UI_NRK_ModSelector_Desc = "Ten mod zastêpuje menu «WYBIERZ MODY» bardziej funkcjonalnym.",
+	
+	
+	UI_NRK_ModSelector_Filter_FilterLabel = "Poka¿ mody:",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "z mapami (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "bez map (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "lokalny (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "warsztatu (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "w³¹czony (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "wy³¹czony (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "dostêpny (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "zepsute (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "Poka¿ wszystkie mody (%1)",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "Szukaj:",
+	UI_NRK_ModSelector_Filter_ByName = "wed³ug nazwy,",
+	UI_NRK_ModSelector_Filter_ByDesc = "wed³ug opisu,",
+	UI_NRK_ModSelector_Filter_ByTags = "wed³ug tagach,",
+	UI_NRK_ModSelector_Filter_ByMaps = "wed³ug map",
+	
+	UI_NRK_ModSelector_List_Favorite = "Ulubione",
+	UI_NRK_ModSelector_List_Unfavorite = "Usuñ z ulubionych",
+	UI_NRK_ModSelector_List_On = "W³¹cz",
+	UI_NRK_ModSelector_List_Off = "Wy³¹cz",
+	
+	UI_NRK_ModSelector_Status_Broken = " (Zepsute)",
+	UI_NRK_ModSelector_Status_Enabled = " (W³¹czony)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (W³¹czony dla %1)",
+	
+	
+	UI_NRK_ModSelector_NoPoster = "Brak obrazka",
+	
+	
+	UI_NRK_ModSelector_Info_ExtraInfo = "Dodatkowe informacje"
+	UI_NRK_ModSelector_Info_ModId = "ID:",
+	UI_NRK_ModSelector_Info_ModVersion = "Wersja:",
+	UI_NRK_ModSelector_Info_PZVersion = "Wersja PZ:",
+	UI_NRK_ModSelector_Info_Require = "Wymaga:",
+	UI_NRK_ModSelector_Info_Tags = "Tagi:",
+	UI_NRK_ModSelector_Info_Maps = "Mapa:",
+	UI_NRK_ModSelector_Info_Authors = "Autorski:",
+	
+	UI_NRK_ModSelector_Info_WorkshopLable = "ID warsztatu:",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "Otwórz nak³adkê Steam dla tego mod",
+	UI_NRK_ModSelector_Info_URLLabel = "Link do strony:",
+	UI_NRK_ModSelector_Info_URLTooltip = "Klikniêcie otworzy stronê wybranego moda w twojej przegl¹darce",
+	UI_NRK_ModSelector_Info_URLWarning = "(ten adres nie jest oficjalnym repozytorium modów PZ - œledzisz go na w³asne ryzyko)",
+	UI_NRK_ModSelector_Info_LocationLabel = "Lokalizacja:",
+	UI_NRK_ModSelector_Info_LocationTooltip = "Otwórz lokalizacjê pliku",
+	UI_NRK_ModSelector_Info_FollowButton = "Pod¹¿aæ",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "Listy modów:",
+	UI_NRK_ModSelector_Save_NoSelection = "[--wybierz postaæ do wczytania--]",
+	UI_NRK_ModSelector_Save_AllDisabled = "Wy³¹cz wszystkie mody",
+	UI_NRK_ModSelector_Save_List_Global = "Aktualna lista - globalny",
+	UI_NRK_ModSelector_Save_List_LastSave = "Aktualna lista - ostatni zapis gry",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "Aktualna lista - aktualna zapis gry",
+	UI_NRK_ModSelector_Save_SaveButton = "ZAPISZ",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "Nazwa:",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "Nazwa nie mo¿e zawieraæ znaków «;» i «:»",
+	UI_NRK_ModSelector_Save_DelButton = "USUÑ",
+	UI_NRK_ModSelector_Save_DelButton_Request = "Usun¹æ «%1»?",
+}

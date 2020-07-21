@@ -52,7 +52,7 @@ function ModSelector:create() -- call from MainScreen.lua
 	local halfH = (self.height - (FONT_HGT_TITLE + DY*2 + BUTTON_HGT + DY*2 + DY))/2
 	
 	self.titleLabel = ISLabel:new(
-		0, DY, FONT_HGT_TITLE, getText("UI_mods_SelectMods"), 
+		0, DY, FONT_HGT_TITLE, getText("UI_mods_SelectMods"),
 		1, 1, 1, 1, UIFont.Title, true
 	)
 	self.titleLabel:setX((self.width - self.titleLabel:getWidth())/2)
@@ -437,7 +437,24 @@ end
 
 function ModSelector.showNagPanel() -- call from MainScreen.lua, NewGameScreen.lua, LoadGameScreen.lua
 	print(NRKLOG, "show NagPanel")
-	-- TODO: return here what was in the original
+	if getCore():isModsPopupDone() then return end
+	
+	getCore():setModsPopupDone(true)
+	ModSelector.instance:setVisible(false)
+	
+	local width, height = 650, 400
+	local nagPanel = ISModsNagPanel:new(
+		(getCore():getScreenWidth() - width)/2,
+		(getCore():getScreenHeight() - height)/2,
+		width, height
+	)
+	nagPanel:initialise()
+	nagPanel:addToUIManager()
+	nagPanel:setAlwaysOnTop(true)
+	if JoypadState[1] then
+		JoypadState[1].focus = nagPanel
+		updateJoypadFocus(JoypadState[1])
+	end
 end
 
 
@@ -787,9 +804,9 @@ function ModListBox:doDrawItem(y, i, alt)
 			end
 		end
 		if #dependents > 0 then
-			self:drawTexture(ACTIVE_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
-		else
 			self:drawTexture(REQUIRE_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
+		else
+			self:drawTexture(ACTIVE_ICON, DX + FONT_HGT_MEDIUM - 5, y + DY + FONT_HGT_MEDIUM - 7, 1)
 		end
 		if item.isFavor then
 			self:drawTexture(FAVORITE_ICON, DX + FONT_HGT_MEDIUM - 6, y + DY, 1)
@@ -955,14 +972,14 @@ end
 function ModPanelInfo:createChildren()
 	-- workshop Label, Entry, Button
 	self.workshopLabel = ISLabel:new(
-		DX, 4, FONT_HGT_SMALL, getText("UI_NRK_ModSelector_ToWorkshop"), 
+		DX, 4, FONT_HGT_SMALL, getText("UI_NRK_ModSelector_Info_WorkshopLable"),
 		1, 1, 1, 1, UIFont.Small, true
 	)
 	self.workshopLabel:setVisible(false)
 	self:addChild(self.workshopLabel)
 	
 	self.workshopEntry = ISTextEntryBox:new("",
-		self.workshopLabel:getRight() + DX, 2, 
+		self.workshopLabel:getRight() + DX, 2,
 		self.width - (BUTTON_WDH + DX*2 + self.scrollwidth) - (self.workshopLabel:getRight() + DX), FONT_HGT_SMALL + 2*2
 	)
 	self.workshopEntry:setVisible(false)
@@ -972,9 +989,9 @@ function ModPanelInfo:createChildren()
 	
 	self.workshopButton = ISButton:new(
 		self.width - (BUTTON_WDH + DX + self.scrollwidth), 0, BUTTON_WDH, BUTTON_HGT,
-		getText("UI_NRK_ModSelector_Go"), self, self.onGoButton
+		getText("UI_NRK_ModSelector_Info_FollowButton"), self, self.onGoButton
 	)
-	self.workshopButton.tooltip = getText("UI_NRK_ModSelector_ToWorkshop_tt")
+	self.workshopButton.tooltip = getText("UI_NRK_ModSelector_Info_WorkshopTooltip")
 	self.workshopButton.internal = "WORKSHOP"
 	self.workshopButton.borderColor = {r=1, g=1, b=1, a=0.1}
 	self.workshopButton:setAnchorLeft(false)
@@ -985,14 +1002,14 @@ function ModPanelInfo:createChildren()
 	
 	-- url Label, Entry, Button
 	self.urlLabel = ISLabel:new(
-		DX, 4, FONT_HGT_SMALL, getText("UI_NRK_ModSelector_ToURL"), 
+		DX, 4, FONT_HGT_SMALL, getText("UI_NRK_ModSelector_Info_URLLabel"),
 		1, 1, 1, 1, UIFont.Small, true
 	)
 	self.urlLabel:setVisible(false)
 	self:addChild(self.urlLabel)
 	
 	self.urlEntry = ISTextEntryBox:new("",
-		self.urlLabel:getRight() + DX, 2, 
+		self.urlLabel:getRight() + DX, 2,
 		self.width - (BUTTON_WDH + DX*2 + self.scrollwidth) - (self.urlLabel:getRight() + DX), FONT_HGT_SMALL + 2*2
 	)
 	self.urlEntry:setVisible(false)
@@ -1002,9 +1019,9 @@ function ModPanelInfo:createChildren()
 	
 	self.urlButton = ISButton:new(
 		self.width - (BUTTON_WDH + DX + self.scrollwidth), 0, BUTTON_WDH, BUTTON_HGT,
-		getText("UI_NRK_ModSelector_Go"), self, self.onGoButton
+		getText("UI_NRK_ModSelector_Info_FollowButton"), self, self.onGoButton
 	)
-	self.urlButton.tooltip = getText("UI_NRK_ModSelector_ToURL_tt")
+	self.urlButton.tooltip = getText("UI_NRK_ModSelector_Info_URLTooltip")
 	self.urlButton.internal = "URL"
 	self.urlButton.borderColor = {r=1, g=1, b=1, a=0.1}
 	self.urlButton:setAnchorLeft(false)
@@ -1015,13 +1032,13 @@ function ModPanelInfo:createChildren()
 	
 	-- location Label, Entry, Button
 	self.locationLabel = ISLabel:new(
-		DX, 4, FONT_HGT_SMALL, getText("UI_NRK_ModSelector_ToLocation"), 
+		DX, 4, FONT_HGT_SMALL, getText("UI_NRK_ModSelector_Info_LocationLabel"),
 		1, 1, 1, 1, UIFont.Small, true
 	)
 	self:addChild(self.locationLabel)
 	
 	self.locationEntry = ISTextEntryBox:new("",
-		self.locationLabel:getRight() + DX, 2, 
+		self.locationLabel:getRight() + DX, 2,
 		self.width - (BUTTON_WDH + DX*2 + self.scrollwidth) - (self.locationLabel:getRight() + DX), FONT_HGT_SMALL + 2*2
 	)
 	self:addChild(self.locationEntry)
@@ -1030,9 +1047,9 @@ function ModPanelInfo:createChildren()
 	
 	self.locationButton = ISButton:new(
 		self.width - (BUTTON_WDH + DX + self.scrollwidth), 0, BUTTON_WDH, BUTTON_HGT,
-		getText("UI_NRK_ModSelector_Go"), self, self.onGoButton
+		getText("UI_NRK_ModSelector_Info_FollowButton"), self, self.onGoButton
 	)
-	self.locationButton.tooltip = getText("UI_NRK_ModSelector_ToLocation_tt")
+	self.locationButton.tooltip = getText("UI_NRK_ModSelector_Info_LocationTooltip")
 	self.locationButton.internal = "LOCATION"
 	self.locationButton.borderColor = {r=1, g=1, b=1, a=0.1}
 	self.locationButton:setAnchorLeft(false)
@@ -1055,7 +1072,7 @@ function ModPanelInfo:createChildren()
 	
 	self.extraButton2 = ISButton:new(
 		self.extraButton:getRight(), 0, BUTTON_WDH, BUTTON_HGT,
-		getText("UI_NRK_ModSelector_ExtraInfo"), self,
+		getText("UI_NRK_ModSelector_Info_ExtraInfo"), self,
 		function()
 			self.extrainfo = not self.extrainfo
 			self.extraButton:setImage(self.extrainfo and EXPANDED_ICON or COLLAPSED_ICON)
@@ -1078,23 +1095,23 @@ function ModPanelInfo:prerender()
 		
 		local name = item.modInfoExtra.name or item.modInfo:getName()
 		local desc = item.modInfoExtra.description or item.modInfo:getDescription() or ""
-		local full_desc = " <H1> " .. name .. " <LINE> <TEXT> " .. desc .. " <LINE> " --<LINE> <TEXT> "
+		local full_desc = " <H1> " .. name .. " <LINE> <TEXT> " .. desc .. " <LINE> "
 		self.descRichText:setText(full_desc)
 		self.descRichText:paginate()
 		
-		local extra_desc = " <TEXT> " .. getText("UI_mods_ID", item.modInfo:getId()) .. " <LINE> "
+		local extra_desc = " <TEXT> " .. getText("UI_NRK_ModSelector_Info_ModId") .. " " .. item.modInfo:getId() .. " <LINE> "
 		if item.modInfoExtra.modversion ~= nil then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_ModVersion") .. " " .. item.modInfoExtra.modversion .. " <LINE> "
+			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_ModVersion") .. " " .. item.modInfoExtra.modversion .. " <LINE> "
 		end
 		if item.modInfoExtra.pzversion ~= nil then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_PZVersion") .. " " .. item.modInfoExtra.pzversion .. " <LINE> "
+			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_PZVersion") .. " " .. item.modInfoExtra.pzversion .. " <LINE> "
 		end
 		if item.modInfoExtra.tags ~= nil then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Tags") .. " " .. table.concat(item.modInfoExtra.tags, ", ") .. " <LINE> "
+			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_Tags") .. " " .. table.concat(item.modInfoExtra.tags, ", ") .. " <LINE> "
 		end
 		local maps = item.modInfoExtra.maps
 		if maps ~= nil and #maps > 0 then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Maps") .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
+			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_Maps") .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
 			for _ , map in ipairs(maps) do
 				extra_desc = extra_desc .. "- " .. map .. " <LINE> "
 			end
@@ -1102,7 +1119,7 @@ function ModPanelInfo:prerender()
 		end
 		local requires = item.modInfo:getRequire()
 		if requires and not requires:isEmpty() then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Require") .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
+			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_Require") .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
 			for i = 0, requires:size() - 1 do
 				if item.isAvailable then
 					extra_desc = extra_desc .. "- " .. requires:get(i) .. " <LINE> "
@@ -1114,7 +1131,7 @@ function ModPanelInfo:prerender()
 		end
 		local authors = item.modInfoExtra.authors
 		if authors ~= nil and #authors > 0 then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Authors") .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
+			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_Authors") .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
 			for _, author in ipairs(authors) do
 				extra_desc = extra_desc .. "- " .. author .. " <LINE> "
 			end
@@ -1139,13 +1156,13 @@ function ModPanelInfo:prerender()
 			self.urlLabel:setVisible(true)
 			self.urlEntry:setVisible(true)
 			self.urlButton:setVisible(true)
-			self.urlButton.tooltip = getText("UI_NRK_ModSelector_ToURL_tt")
+			self.urlButton.tooltip = getText("UI_NRK_ModSelector_Info_URLTooltip")
 			self.urlEntry:setText(item.modInfo:getUrl())
 		elseif item.modInfoExtra.url ~= nil and item.modInfoExtra.url ~= "" then
 			self.urlLabel:setVisible(true)
 			self.urlEntry:setVisible(true)
 			self.urlButton:setVisible(true)
-			self.urlButton.tooltip = getText("UI_NRK_ModSelector_ToURL_tt") .. " " .. getText("UI_NRK_ModSelector_ToURL_warning")
+			self.urlButton.tooltip = getText("UI_NRK_ModSelector_Info_URLTooltip") .. " " .. getText("UI_NRK_ModSelector_Info_URLWarning")
 			self.urlEntry:setText(item.modInfoExtra.url)
 		else
 			self.urlLabel:setVisible(false)

@@ -1,0 +1,60 @@
+UI_TH = {
+	UI_NRK_ModSelector_Filter_FilterLabel = "แสดง :",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "แผนที่ (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "ไม่ใช่บัตร (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "ในพื้นที่ (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "ไอดีเวิร์คช็อป (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "ใช้งาน (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "ไม้ใช้งาน (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "ใช้ได้ (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "พัง (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "แสดงทั้งหมด (%1)",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "ค้นหา :",
+	UI_NRK_ModSelector_Filter_ByName = "ชื่อ,",
+	UI_NRK_ModSelector_Filter_ByDesc = "คำอธิบาย,",
+	UI_NRK_ModSelector_Filter_ByTags = "แท็ก,",
+	UI_NRK_ModSelector_Filter_ByMaps = "แผนที่",
+	
+	
+	UI_NRK_ModSelector_List_Favorite = "เพิ่มเป็นรายการโปรด",
+	UI_NRK_ModSelector_List_Unfavorite = "เอาออกจากรายการโปรด",
+	UI_NRK_ModSelector_List_On = "เปิด",
+	UI_NRK_ModSelector_List_Off = "ปิด",
+	
+	UI_NRK_ModSelector_Status_Broken = " (พัง)",
+	UI_NRK_ModSelector_Status_Enabled = " (ใช้งาน)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (ใช้งาน %1)",
+	
+	
+	UI_NRK_ModSelector_NoPoster = "ไม่มีรูป",
+	
+	
+	UI_NRK_ModSelector_Info_ExtraInfo = "ข้อมูลเพิ่มเติม"
+	UI_NRK_ModSelector_Info_ModId = "ID :",
+	UI_NRK_ModSelector_Info_ModVersion = "รุ่น :",
+	UI_NRK_ModSelector_Info_PZVersion = "PZ รุ่น :",
+	UI_NRK_ModSelector_Info_Require = "ต้องการ :",
+	UI_NRK_ModSelector_Info_Tags = "แท็ก :",
+	UI_NRK_ModSelector_Info_Maps = "แผนที่ :",
+	UI_NRK_ModSelector_Info_Authors = "ผู้เขียน :",
+	
+	UI_NRK_ModSelector_Info_WorkshopLable = "ไอดีเวิร์คช็อป:",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "เปิดสตีมในเกมสำหรับม็อดนี้",
+	UI_NRK_ModSelector_Info_URLLabel = "เชื่อมโยงไปยังเว็บไซต์ :",
+	UI_NRK_ModSelector_Info_URLTooltip = "คลิกเพื่อไปยังหน้าเว็บของม็อดบนบราวเซอร์ของคุณ",
+	UI_NRK_ModSelector_Info_URLWarning = "(ที่อยู่นี้ไม่ได้เป็นพื้นที่เก็บข้อมูลอย่างเป็นทางการของการแก้ไข PZ - คุณทำตามความเสี่ยงของคุณเอง)",
+	UI_NRK_ModSelector_Info_LocationLabel = "ที่ตั้ง:",
+	UI_NRK_ModSelector_Info_LocationTooltip = "เปิดตำแหน่งของไฟล์นี้",
+	UI_NRK_ModSelector_Info_FollowButton = "ติดตาม",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "รายการการปรับเปลี่ยน :",
+	UI_NRK_ModSelector_Save_NoSelection = "[----เลือก----]",
+	UI_NRK_ModSelector_Save_AllDisabled = "ปิดทุกอย่าง",
+	UI_NRK_ModSelector_Save_SaveButton = "บันทึก",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "ชื่อ :",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "ชื่อต้องไม่มีอักขระ «;» และ «:»",
+	UI_NRK_ModSelector_Save_DelButton = "ลบ",
+	UI_NRK_ModSelector_Save_DelButton_Request = "ลบ «%1»?",
+}

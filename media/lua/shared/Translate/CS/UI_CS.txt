@@ -1,0 +1,67 @@
+UI_CS = {
+	UI_NRK_ModSelector_Name = "Pokroèilý výbìr modù",
+	UI_NRK_ModSelector_Desc = "Tento režim nahrazuje nabídku «VYBRAT MÓDY» funkènìjším.",
+	
+	
+	UI_NRK_ModSelector_Filter_FilterLabel = "Zobrazit módy:",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "s mapami (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "bez map (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "místní (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "workshop (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "povoleno (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "zakázáno (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "dostupný (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "rozbité (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "Zobrazit vše módy (%1)",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "Hledat:",
+	UI_NRK_ModSelector_Filter_ByName = "podle názvu,",
+	UI_NRK_ModSelector_Filter_ByDesc = "podle popisu,",
+	UI_NRK_ModSelector_Filter_ByTags = "podle znaèek,",
+	UI_NRK_ModSelector_Filter_ByMaps = "podle map",
+	
+	
+	UI_NRK_ModSelector_List_Favorite = "Oblíbené",
+	UI_NRK_ModSelector_List_Unfavorite = "Neoblíbit",
+	UI_NRK_ModSelector_List_On = "Zap.",
+	UI_NRK_ModSelector_List_Off = "Vyp.",
+	
+	UI_NRK_ModSelector_Status_Broken = " (Rozbité)",
+	UI_NRK_ModSelector_Status_Enabled = " (Povoleno)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (Povoleno pro %1)",
+	
+	
+	UI_NRK_ModSelector_NoPoster = "Bez obrázku",
+	
+	
+	UI_NRK_ModSelector_Info_ExtraInfo = "Extra info"
+	UI_NRK_ModSelector_Info_ModId = "ID:",
+	UI_NRK_ModSelector_Info_ModVersion = "Verze:",
+	UI_NRK_ModSelector_Info_PZVersion = "Verze PZ:",
+	UI_NRK_ModSelector_Info_Require = "Vyžaduje:",
+	UI_NRK_ModSelector_Info_Tags = "Znaèky:",
+	UI_NRK_ModSelector_Info_Maps = "Mapa:",
+	UI_NRK_ModSelector_Info_Authors = "Autoøi:",
+	
+	UI_NRK_ModSelector_Info_WorkshopLable = "Workshop ID:",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "Otevøi komunitu služby Steam pro této modifikace",
+	UI_NRK_ModSelector_Info_URLLabel = "Odkaz na web:",
+	UI_NRK_ModSelector_Info_URLTooltip = "Klikni pro otevøení webových stránkech této modifikace",
+	UI_NRK_ModSelector_Info_URLWarning = "(tato adresa není oficiálním úložištìm modù PZ - sledujete ji na vlastní nebezpeèí)",
+	UI_NRK_ModSelector_Info_LocationLabel = "Umístìní:",
+	UI_NRK_ModSelector_Info_LocationTooltip = "Otevøít umístìní souboru",
+	UI_NRK_ModSelector_Info_FollowButton = "Pøejít",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "Seznamy modù:",
+	UI_NRK_ModSelector_Save_NoSelection = "[--Vyber k nahrání--]",
+	UI_NRK_ModSelector_Save_AllDisabled = "Zakázat vše módy",
+	UI_NRK_ModSelector_Save_List_Global = "Aktuální seznam - globální",
+	UI_NRK_ModSelector_Save_List_LastSave = "Aktuální seznam - poslední uloženou pozici",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "Aktuální seznam - aktuální uloženou pozici",
+	UI_NRK_ModSelector_Save_SaveButton = "ULOŽIT",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "Název:",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "Název nesmí obsahovat znaky «;» a «:»",
+	UI_NRK_ModSelector_Save_DelButton = "SMAZAT",
+	UI_NRK_ModSelector_Save_DelButton_Request = "Smazat «%1»?",
+}

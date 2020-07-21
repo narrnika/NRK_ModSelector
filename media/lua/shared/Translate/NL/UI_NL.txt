@@ -1,0 +1,67 @@
+UI_NL = {
+	UI_NRK_ModSelector_Name = "Verbeterde mod-selectie",
+	UI_NRK_ModSelector_Desc = "Deze mod vervangt het menu «SELECTEER MODIFICATIES» door een meer functionele.",
+	
+	
+	UI_NRK_ModSelector_Filter_FilterLabel = "Toon mods:",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "met kaarten (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "zonder kaarten (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "lokaal (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "workshop (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "ingeschakeld (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "uitgeschakeld (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "beschikbaar (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "kapot (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "Toon alles mods (%1)",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "Zoek:",
+	UI_NRK_ModSelector_Filter_ByName = "op naam,",
+	UI_NRK_ModSelector_Filter_ByDesc = "op omschrijving,",
+	UI_NRK_ModSelector_Filter_ByTags = "op tags,",
+	UI_NRK_ModSelector_Filter_ByMaps = "op kaarten",
+	
+	
+	UI_NRK_ModSelector_List_Favorite = "Instellen als favoriet",
+	UI_NRK_ModSelector_List_Unfavorite = "Niet meer als favoriet instellen",
+	UI_NRK_ModSelector_List_On = "Aan",
+	UI_NRK_ModSelector_List_Off = "Uit",
+	
+	UI_NRK_ModSelector_Status_Broken = " (Kapot)",
+	UI_NRK_ModSelector_Status_Enabled = " (Ingeschakeld)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (Ingeschakeld voor %1)",
+	
+	
+	UI_NRK_ModSelector_NoPoster = "Geen afbeelding",
+	
+	
+	UI_NRK_ModSelector_Info_ExtraInfo = "Extra info"
+	UI_NRK_ModSelector_Info_ModId = "ID:",
+	UI_NRK_ModSelector_Info_ModVersion = "Versie:",
+	UI_NRK_ModSelector_Info_PZVersion = "PZ versie:",
+	UI_NRK_ModSelector_Info_Require = "Benodigt:",
+	UI_NRK_ModSelector_Info_Tags = "Tags:",
+	UI_NRK_ModSelector_Info_Maps = "Kaarten:",
+	UI_NRK_ModSelector_Info_Authors = "Auteurs:",
+	
+	UI_NRK_ModSelector_Info_WorkshopLable = "Workshop ID:",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "Open Steam Overlay voor deze mod",
+	UI_NRK_ModSelector_Info_URLLabel = "Link naar site:",
+	UI_NRK_ModSelector_Info_URLTooltip = "Klik om de pagina van deze mod in je webbrowser te openen",
+	UI_NRK_ModSelector_Info_URLWarning = "(dit adres is geen officiële opslagplaats van PZ-mods - u volgt het op eigen risico)",
+	UI_NRK_ModSelector_Info_LocationLabel = "Locatie:",
+	UI_NRK_ModSelector_Info_LocationTooltip = "Open Bestand Locatie",
+	UI_NRK_ModSelector_Info_FollowButton = "Volgen",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "Mod lijsten:",
+	UI_NRK_ModSelector_Save_NoSelection = "[--Selecteer om te laden--]",
+	UI_NRK_ModSelector_Save_AllDisabled = "Uitschakelen alles mods",
+	UI_NRK_ModSelector_Save_List_Global = "Huidige lijst - globaal",
+	UI_NRK_ModSelector_Save_List_LastSave = "Huidige lijst - laatste save",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "Huidige lijst - huidige save",
+	UI_NRK_ModSelector_Save_SaveButton = "OPSLAAN",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "Naam:",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "Naam mag de tekens «;» en «:» niet bevatten",
+	UI_NRK_ModSelector_Save_DelButton = "VERWIJDEREN",
+	UI_NRK_ModSelector_Save_DelButton_Request = "Verwijder «%1»?",
+}

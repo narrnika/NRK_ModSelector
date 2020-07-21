@@ -1,0 +1,67 @@
+﻿UI_JP = {
+	UI_NRK_ModSelector_Name = "MOD選択の改善",
+	UI_NRK_ModSelector_Desc = "このmodは、「MODを選択」メニューをより機能的なものに置き換えます。",
+	
+	
+	UI_NRK_ModSelector_Filter_FilterLabel = "示す：",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "地図付き (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "地図なし (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "ローカル (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "ワークショップ (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "有効 (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "無効 (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "利用可能 (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "壊れた (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "すべてを表示 (%1)",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "検索：",
+	UI_NRK_ModSelector_Filter_ByName = "名前で、",
+	UI_NRK_ModSelector_Filter_ByDesc = "説明で 、",
+	UI_NRK_ModSelector_Filter_ByTags = "タグで、",
+	UI_NRK_ModSelector_Filter_ByMaps = "地図で",
+	
+	
+	UI_NRK_ModSelector_List_Favorite = "お気に入り",
+	UI_NRK_ModSelector_List_Unfavorite = "お気に入りを解除",
+	UI_NRK_ModSelector_List_On = "作動",
+	UI_NRK_ModSelector_List_Off = "停止",
+	
+	UI_NRK_ModSelector_Status_Broken = " (壊れた)",
+	UI_NRK_ModSelector_Status_Enabled = " (有効)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (%1によって有効)",
+	
+	
+	UI_NRK_ModSelector_NoPoster = "画像無し",
+	
+	
+	UI_NRK_ModSelector_Info_ExtraInfo = "追加情報"
+	UI_NRK_ModSelector_Info_ModId = "ID：",
+	UI_NRK_ModSelector_Info_ModVersion = "バージョン：",
+	UI_NRK_ModSelector_Info_PZVersion = "PZバージョン：",
+	UI_NRK_ModSelector_Info_Require = "要する：",
+	UI_NRK_ModSelector_Info_Tags = "タグ：",
+	UI_NRK_ModSelector_Info_Maps = "地図：",
+	UI_NRK_ModSelector_Info_Authors = "著者：",
+	
+	UI_NRK_ModSelector_Info_WorkshopLable = "ワークショップID：",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "このアイテムで Steamオーバーレイを開く",
+	UI_NRK_ModSelector_Info_URLLabel = "サイトへのリンク：",
+	UI_NRK_ModSelector_Info_URLTooltip = "あなたのウェブブラウザにこのMODのページを開きます。",
+	UI_NRK_ModSelector_Info_URLWarning = "(このアドレスはPZ改造の公式リポジトリではありません-自己責任でフォローしてください)",
+	UI_NRK_ModSelector_Info_LocationLabel = "ロケーション：",
+	UI_NRK_ModSelector_Info_LocationTooltip = "このファイルの場所を開く",
+	UI_NRK_ModSelector_Info_FollowButton = "従う",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "MODのリスト：",
+	UI_NRK_ModSelector_Save_NoSelection = "保存ファイルを選択",
+	UI_NRK_ModSelector_Save_AllDisabled = "すべて無効にする",
+	UI_NRK_ModSelector_Save_List_Global = "現在のリスト―グローバル",
+	UI_NRK_ModSelector_Save_List_LastSave = "現在のリスト―最後の保存",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "現在のリスト―現在の保存",
+	UI_NRK_ModSelector_Save_SaveButton = "保存",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "保存する名前を入力",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "名前は文字「:」と「;」を含んでいてはなりません",
+	UI_NRK_ModSelector_Save_DelButton = "削除",
+	UI_NRK_ModSelector_Save_DelButton_Request = "「%1」を削除しますか？",
+}

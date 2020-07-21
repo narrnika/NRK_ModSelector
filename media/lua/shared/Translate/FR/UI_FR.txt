@@ -1,0 +1,67 @@
+UI_FR = {
+	UI_NRK_ModSelector_Name = "Sélection de mod améliorée",
+	UI_NRK_ModSelector_Desc = "Ce mod remplace le menu «SÉLECTIONNER LES MODS» par un menu plus fonctionnel.",
+	
+	
+	UI_NRK_ModSelector_Filter_FilterLabel = "Afficher les mods:",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "avec des cartes (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "pas de cartes (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "local (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "workshop (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "activé (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "desactivé (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "disponible (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "cassé (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "Afficher tous les mods (%1)",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "Recherche:",
+	UI_NRK_ModSelector_Filter_ByName = "par noms,",
+	UI_NRK_ModSelector_Filter_ByDesc = "par descriptions,",
+	UI_NRK_ModSelector_Filter_ByTags = "par mots-clés,",
+	UI_NRK_ModSelector_Filter_ByMaps = "par cartes",
+	
+	
+	UI_NRK_ModSelector_List_Favorite = "Favori",
+	UI_NRK_ModSelector_List_Unfavorite = "Retirer des favoris",
+	UI_NRK_ModSelector_List_On = "On",
+	UI_NRK_ModSelector_List_Off = "Off",
+	
+	UI_NRK_ModSelector_Status_Broken = " (Cassé)",
+	UI_NRK_ModSelector_Status_Enabled = " (Activé)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (Activé par %1)",
+	
+	
+	UI_NRK_ModSelector_NoPoster = "Pas d'affiches",
+	
+	
+	UI_NRK_ModSelector_Info_ExtraInfo = "Informations supplémentaires"
+	UI_NRK_ModSelector_Info_ModId = "ID :",
+	UI_NRK_ModSelector_Info_ModVersion = "Version :",
+	UI_NRK_ModSelector_Info_PZVersion = "Version du PZ :",
+	UI_NRK_ModSelector_Info_Require = "Requiert :",
+	UI_NRK_ModSelector_Info_Tags = "Mots-clés :",
+	UI_NRK_ModSelector_Info_Maps = "Cartes :",
+	UI_NRK_ModSelector_Info_Authors = "Auteurs :",
+	
+	UI_NRK_ModSelector_Info_WorkshopLable = "ID Workshop :",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "Ouvrir la surcouche Steam sur cet mod",
+	UI_NRK_ModSelector_Info_URLLabel = "Lien vers le site :",
+	UI_NRK_ModSelector_Info_URLTooltip = "Cliquez pour ouvrir la page de ce mod dans votre navigateur web",
+	UI_NRK_ModSelector_Info_URLWarning = "(cette adresse n'est pas un référentiel officiel des mods PZ - vous y suivez à vos propres risques)",
+	UI_NRK_ModSelector_Info_LocationLabel = "Emplacement :",
+	UI_NRK_ModSelector_Info_LocationTooltip = "Ouvrir l'emplacement du fichier",
+	UI_NRK_ModSelector_Info_FollowButton = "Suivre",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "Listes des mods:",
+	UI_NRK_ModSelector_Save_NoSelection = "[--Selectionner--]",
+	UI_NRK_ModSelector_Save_AllDisabled = "Desactivé tous les mods",
+	UI_NRK_ModSelector_Save_List_Global = "Liste actuelle - global",
+	UI_NRK_ModSelector_Save_List_LastSave = "Liste actuelle - dernier sauvegarde",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "Liste actuelle - actuelle sauvegarde",
+	UI_NRK_ModSelector_Save_SaveButton = "SAUVER",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "Nom :",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "Le nom ne doit pas contenir de caractères «;» et «:»",
+	UI_NRK_ModSelector_Save_DelButton = "SUPPRIMER",
+	UI_NRK_ModSelector_Save_DelButton_Request = "Supprimer «%1»?",
+}

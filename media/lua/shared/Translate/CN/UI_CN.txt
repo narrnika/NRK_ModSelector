@@ -1,0 +1,67 @@
+﻿UI_CN = {
+	UI_NRK_ModSelector_Name = "改进的模块选择",
+	UI_NRK_ModSelector_Desc = "此功能模块以功能更强大的功能取代了“选择模块“菜单。",
+	
+	
+	UI_NRK_ModSelector_Filter_FilterLabel = "显示：",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "与地图 (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "没有地图 (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "本地 (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "workshop (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "已启用 (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "已禁用 (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "有空 (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "损坏了 (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "显示所有 (%1)",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "搜索：",
+	UI_NRK_ModSelector_Filter_ByName = "按名称,",
+	UI_NRK_ModSelector_Filter_ByDesc = "按描述,",
+	UI_NRK_ModSelector_Filter_ByTags = "按标签,",
+	UI_NRK_ModSelector_Filter_ByMaps = "通过地图",
+	
+	
+	UI_NRK_ModSelector_List_Favorite = "收藏",
+	UI_NRK_ModSelector_List_Unfavorite = "取消收藏",
+	UI_NRK_ModSelector_List_On = "开",
+	UI_NRK_ModSelector_List_Off = "关",
+	
+	UI_NRK_ModSelector_Status_Broken = " (损坏了)",
+	UI_NRK_ModSelector_Status_Enabled = " (已启用)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (为%1启用)",
+	
+	
+	UI_NRK_ModSelector_NoPoster = "没有图像",
+	
+	
+	UI_NRK_ModSelector_Info_ExtraInfo = "额外信息"
+	UI_NRK_ModSelector_Info_ModId = "ID：",
+	UI_NRK_ModSelector_Info_ModVersion = "版本：",
+	UI_NRK_ModSelector_Info_PZVersion = "PZ版本：",
+	UI_NRK_ModSelector_Info_Require = "需要：",
+	UI_NRK_ModSelector_Info_Tags = "标签：",
+	UI_NRK_ModSelector_Info_Maps = "地图：",
+	UI_NRK_ModSelector_Info_Authors = "作者的：",
+	
+	UI_NRK_ModSelector_Info_WorkshopLable = "Workshop ID：",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "打开 Steam 浏览器查看该插件",
+	UI_NRK_ModSelector_Info_URLLabel = "链接到网站：",
+	UI_NRK_ModSelector_Info_URLTooltip = "点击这里获取本模组的相关信息",
+	UI_NRK_ModSelector_Info_URLWarning = "(此地址不是PZ模块的官方存储库-您自行承担后果承担责任)",
+	UI_NRK_ModSelector_Info_LocationLabel = "位置：",
+	UI_NRK_ModSelector_Info_LocationTooltip = "打开文件位置",
+	UI_NRK_ModSelector_Info_FollowButton = "跟随",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "模块名单：",
+	UI_NRK_ModSelector_Save_NoSelection = "[--选择要读取的配置--]",
+	UI_NRK_ModSelector_Save_AllDisabled = "禁用所有",
+	UI_NRK_ModSelector_Save_List_Global = "当前名单：全球",
+	UI_NRK_ModSelector_Save_List_LastSave = "当前名单：最后一个保存",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "当前名单：当前保存",
+	UI_NRK_ModSelector_Save_SaveButton = "保存",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "名称：",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "名称中不得包含字符“;“和“:“",
+	UI_NRK_ModSelector_Save_DelButton = "删除",
+	UI_NRK_ModSelector_Save_DelButton_Request = "删除“%1“?",
+}

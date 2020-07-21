@@ -1,14 +1,14 @@
 id=NRK_ModSelector
 
 name=NRK ModSelector
-name_extra=UI_NRK_ModSelector_Name
+description=This mod replaces the «SELECT MODS» menu with a more functional one.
 
-description=Upgrade ModSelector menu <LINE> Completely replaces file ModSelector.lua
+name_extra=UI_NRK_ModSelector_Name
 description_extra=UI_NRK_ModSelector_Desc
 
-modversion=5
-pzversion=41.39
-tags=MainMenu, UI
+modversion=6
+pzversion=41
+tags=MainMenu,Interface
 authors=Narrnika
 
 url=https://github.com/narrnika/NRK_ModSelector

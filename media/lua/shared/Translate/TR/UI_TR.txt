@@ -1,0 +1,66 @@
+UI_TR = {
+	UI_NRK_ModSelector_Name = "Geliþtirilmiþ modlari seçimi",
+	UI_NRK_ModSelector_Desc = "Bu mod «MODLARI SEÇ» menüsünü daha iþlevsel bir mod ile deðiþtirir.",
+	
+	
+	UI_NRK_ModSelector_Filter_FilterLabel = "Göster modlar:",
+	UI_NRK_ModSelector_Filter_WithmapFlag = "harita (%1)",
+	UI_NRK_ModSelector_Filter_WithoutmapFlag = "olmayan kart (%1)",
+	UI_NRK_ModSelector_Filter_LocalFlag = "yerel (%1)",
+	UI_NRK_ModSelector_Filter_WorkshopFlag = "atölye (%1)",
+	UI_NRK_ModSelector_Filter_EnabledFlag = "açýk (%1)",
+	UI_NRK_ModSelector_Filter_DisabledFlag = "kapalý (%1)",
+	UI_NRK_ModSelector_Filter_AvailableFlag = "mevcut (%1)",
+	UI_NRK_ModSelector_Filter_BrokenFlag = "kýrýk (%1)",
+	UI_NRK_ModSelector_Filter_AllButton = "Göster hepsi modlar (%1)",
+	
+	UI_NRK_ModSelector_Filter_SearchLabel = "Arama:",
+	UI_NRK_ModSelector_Filter_ByName = "isim,",
+	UI_NRK_ModSelector_Filter_ByDesc = "açýklama,",
+	UI_NRK_ModSelector_Filter_ByTags = "etiketler,",
+	UI_NRK_ModSelector_Filter_ByMaps = "harita",
+	
+	
+	UI_NRK_ModSelector_List_Favorite = "Favorilere Ekle",
+	UI_NRK_ModSelector_List_Unfavorite = "Favorilerden Çýkar",
+	UI_NRK_ModSelector_List_On = "Açýk",
+	UI_NRK_ModSelector_List_Off = "Kapalý",
+	
+	UI_NRK_ModSelector_Status_Broken = " (Kýrýk)",
+	UI_NRK_ModSelector_Status_Enabled = " (Açýk)",
+	UI_NRK_ModSelector_Status_EnabledBy = " (Açýk için %1)",
+	
+	
+	UI_NRK_ModSelector_NoPoster = "Görüntü yok",
+	
+	
+	UI_NRK_ModSelector_Info_ExtraInfo = "Fazladan bilgi"
+	UI_NRK_ModSelector_Info_ModId = "ID:",
+	UI_NRK_ModSelector_Info_ModVersion = "Versionu:",
+	UI_NRK_ModSelector_Info_PZVersion = "PZ versionu:",
+	UI_NRK_ModSelector_Info_Require = "Aç:",
+	UI_NRK_ModSelector_Info_Tags = "Etiketler:",
+	UI_NRK_ModSelector_Info_Maps = "Harita:",
+	
+	UI_NRK_ModSelector_Info_WorkshopLable = "Atölye ID:",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "Bu mod için Steam arayüzünü aç",
+	UI_NRK_ModSelector_Info_URLLabel = "Site baðlantýsý:",
+	UI_NRK_ModSelector_Info_URLTooltip = "Bu mod sayfasýný tarayýcýda açmak için týklayýn.",
+	UI_NRK_ModSelector_Info_URLWarning = "(bu adres PZ modlarýnýn resmi bir deposu deðildir - riski size ait olarak takip edersiniz)",
+	UI_NRK_ModSelector_Info_LocationLabel = "Konum:",
+	UI_NRK_ModSelector_Info_LocationTooltip = "Bu dosyanýn konumunu aç",
+	UI_NRK_ModSelector_Info_FollowButton = "Takip et",
+	
+	
+	UI_NRK_ModSelector_Save_Label = "Modlarý listeleri:",
+	UI_NRK_ModSelector_Save_NoSelection = "[--Kayýt Seçin--]",
+	UI_NRK_ModSelector_Save_AllDisabled = "Hepsi devre dýþý býrak",
+	UI_NRK_ModSelector_Save_List_Global = "Geçerli liste - global",
+	UI_NRK_ModSelector_Save_List_LastSave = "Geçerli liste - son kayýt",
+	UI_NRK_ModSelector_Save_List_CurrentSave = "Geçerli liste - geçerli kayýt",
+	UI_NRK_ModSelector_Save_SaveButton = "KAYDET",
+	UI_NRK_ModSelector_Save_SaveButton_Request = "Ýsim:",
+	UI_NRK_ModSelector_Save_SaveButton_tt = "Ad «;» ve «:» karakterlerini içermemelidir",
+	UI_NRK_ModSelector_Save_DelButton = "SÝL",
+	UI_NRK_ModSelector_Save_DelButton_Request = "Sil «%1»?",
+}
