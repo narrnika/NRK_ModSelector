@@ -1,8 +1,4 @@
 UI_TR = {
-	UI_NRK_ModSelector_Name = "Geliþtirilmiþ modlari seçimi",
-	UI_NRK_ModSelector_Desc = "Bu mod «MODLARI SEÇ» menüsünü daha iþlevsel bir mod ile deðiþtirir.",
-	
-	
 	UI_NRK_ModSelector_Filter_FilterLabel = "Göster modlar:",
 	UI_NRK_ModSelector_Filter_WithmapFlag = "harita (%1)",
 	UI_NRK_ModSelector_Filter_WithoutmapFlag = "olmayan kart (%1)",
@@ -15,6 +11,7 @@ UI_TR = {
 	UI_NRK_ModSelector_Filter_AllButton = "Göster hepsi modlar (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Arama:",
+	UI_NRK_ModSelector_Filter_ByID = "ID,",
 	UI_NRK_ModSelector_Filter_ByName = "isim,",
 	UI_NRK_ModSelector_Filter_ByDesc = "açýklama,",
 	UI_NRK_ModSelector_Filter_ByTags = "etiketler,",

@@ -1,8 +1,4 @@
 UI_CS = {
-	UI_NRK_ModSelector_Name = "Pokroèilý výbìr modù",
-	UI_NRK_ModSelector_Desc = "Tento režim nahrazuje nabídku «VYBRAT MÓDY» funkènìjším.",
-	
-	
 	UI_NRK_ModSelector_Filter_FilterLabel = "Zobrazit módy:",
 	UI_NRK_ModSelector_Filter_WithmapFlag = "s mapami (%1)",
 	UI_NRK_ModSelector_Filter_WithoutmapFlag = "bez map (%1)",
@@ -15,6 +11,7 @@ UI_CS = {
 	UI_NRK_ModSelector_Filter_AllButton = "Zobrazit vše módy (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Hledat:",
+	UI_NRK_ModSelector_Filter_ByID = "podle ID,",
 	UI_NRK_ModSelector_Filter_ByName = "podle názvu,",
 	UI_NRK_ModSelector_Filter_ByDesc = "podle popisu,",
 	UI_NRK_ModSelector_Filter_ByTags = "podle znaèek,",

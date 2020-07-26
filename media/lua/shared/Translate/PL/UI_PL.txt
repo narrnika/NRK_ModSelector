@@ -1,8 +1,4 @@
 UI_PL = {
-	UI_NRK_ModSelector_Name = "Ulepszony wybór modów",
-	UI_NRK_ModSelector_Desc = "Ten mod zastêpuje menu «WYBIERZ MODY» bardziej funkcjonalnym.",
-	
-	
 	UI_NRK_ModSelector_Filter_FilterLabel = "Poka¿ mody:",
 	UI_NRK_ModSelector_Filter_WithmapFlag = "z mapami (%1)",
 	UI_NRK_ModSelector_Filter_WithoutmapFlag = "bez map (%1)",
@@ -15,10 +11,12 @@ UI_PL = {
 	UI_NRK_ModSelector_Filter_AllButton = "Poka¿ wszystkie mody (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Szukaj:",
+	UI_NRK_ModSelector_Filter_ByID = "wed³ug ID,",
 	UI_NRK_ModSelector_Filter_ByName = "wed³ug nazwy,",
 	UI_NRK_ModSelector_Filter_ByDesc = "wed³ug opisu,",
 	UI_NRK_ModSelector_Filter_ByTags = "wed³ug tagach,",
 	UI_NRK_ModSelector_Filter_ByMaps = "wed³ug map",
+	
 	
 	UI_NRK_ModSelector_List_Favorite = "Ulubione",
 	UI_NRK_ModSelector_List_Unfavorite = "Usuñ z ulubionych",

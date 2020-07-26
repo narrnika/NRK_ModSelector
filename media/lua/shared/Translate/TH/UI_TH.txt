@@ -11,6 +11,7 @@ UI_TH = {
 	UI_NRK_ModSelector_Filter_AllButton = "แสดงทั้งหมด (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "ค้นหา :",
+	UI_NRK_ModSelector_Filter_ByID = "ID,",
 	UI_NRK_ModSelector_Filter_ByName = "ชื่อ,",
 	UI_NRK_ModSelector_Filter_ByDesc = "คำอธิบาย,",
 	UI_NRK_ModSelector_Filter_ByTags = "แท็ก,",

@@ -249,7 +249,6 @@ function ModSelector:onGetMods()
 		if isSteamOverlayEnabled() then
 			activateSteamOverlayToWorkshop()
 		else
-			-- TODO: need testing, steem or browser
 			openUrl("steam://url/SteamWorkshopPage/108600")
 		end
 	else
@@ -386,11 +385,12 @@ function ModSelector:checkRequire(modId)
 	return true
 end
 
-function ModSelector:readInfoExtra(modID)
+function ModSelector:readInfoExtra(modId)
+	local modInfo = getModInfoByID(modId)
 	local modInfoExtra = {}
 	
 	-- mod with maps?
-	local mapList = getMapFoldersForMod(modID)
+	local mapList = getMapFoldersForMod(modId)
 	if mapList ~= nil and mapList:size() > 0 then
 		modInfoExtra.maps = {}
 		for i = 0, mapList:size() - 1 do
@@ -398,8 +398,24 @@ function ModSelector:readInfoExtra(modID)
 		end
 	end
 	
+	-- find <LANG:XX> commands in description
+	local desc = modInfo:getDescription()
+	local act_lang, def_lang = "<LANG:" .. Translator.getLanguage():name() .. ">", "<LANG:EN>"
+	local _, start_a = string.find(desc, act_lang)
+	local _, start_d = string.find(desc, def_lang)
+	local start = start_a or start_d
+	if start then
+		desc = string.sub(desc, start + 1)
+		local finish, _ = string.find(desc, "<LANG:")
+		if finish ~= nil then
+			modInfoExtra.description = string.sub(desc, 0, finish - 1)
+		else
+			modInfoExtra.description = desc
+		end
+	end
+	
 	-- extra data from mod.info
-	local file = getModFileReader(modID, "mod.info", false)
+	local file = getModFileReader(modId, "mod.info", false)
 	if not file then return modInfoExtra end
 	local line = file:readLine()
 	while line ~= nil do
@@ -420,13 +436,11 @@ function ModSelector:readInfoExtra(modID)
 		
 		-- no read default keys: name, poster, description, require, id, pack, tiledef
 		-- reread url without restrictions
-		if key == "name_extra" then modInfoExtra.name = getTextOrNull(val) end
-		if key == "description_extra" then modInfoExtra.description = getTextOrNull(val) end
 		if key == "modversion" then modInfoExtra.modversion = val end
 		if key == "pzversion" then modInfoExtra.pzversion = val end
 		if key == "tags" then modInfoExtra.tags = val end
 		if key == "authors" then modInfoExtra.authors = val end
-		if key == "icon" then modInfoExtra.icon = getTexture(getModInfoByID(modID):getDir() .. getFileSeparator() .. val) end
+		if key == "icon" then modInfoExtra.icon = getTexture(modInfo:getDir() .. getFileSeparator() .. val) end
 		if key == "url" then modInfoExtra.url = val end
 		line = file:readLine()
 	end
@@ -550,7 +564,14 @@ function ModPanelFilter:createChildren()
 	self:addChild(self.searchEntryBox)
 	self.searchEntryBox:setClearButton(true)
 	
-	self.nameTickBox = ISTickBox:new(self.searchEntryBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
+	self.idTickBox = ISTickBox:new(self.searchEntryBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
+	self.idTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	self.idTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByID"), nil)
+	self.idTickBox:setWidthToFit()
+	self.idTickBox.selected[1] = false
+	self:addChild(self.idTickBox)
+	
+	self.nameTickBox = ISTickBox:new(self.idTickBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
 	self.nameTickBox.choicesColor = {r=1, g=1, b=1, a=1}
 	self.nameTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByName"), nil)
 	self.nameTickBox:setWidthToFit()
@@ -640,27 +661,37 @@ function ModPanelFilter:resize()
 	end
 	
 	-- line 2
-	w = {self.searchLabel.width, BUTTON_WDH, self.nameTickBox.width, self.descTickBox.width, self.tagsTickBox.width, self.mapsTickBox.width}
-	if self.width >= w[1] + w[2] + w[3] + w[4] + w[5] + w[6] + DX*7 then
-		self.searchEntryBox:setWidth(self.width - (w[1] + w[3] + w[4] + w[5] + w[6] + DX*7))
-		self.nameTickBox:setX(self.searchEntryBox:getRight() + DX)
+	w = {self.searchLabel.width, BUTTON_WDH, self.idTickBox.width, self.nameTickBox.width, self.descTickBox.width, self.tagsTickBox.width, self.mapsTickBox.width}
+	if self.width >= w[1] + w[2] + w[3] + w[4] + w[5] + w[6] + w[7] + DX*8 then
+		self.searchEntryBox:setWidth(self.width - (w[1] + w[3] + w[4] + w[5] + w[6] + w[7] + DX*8))
+		self.idTickBox:setX(self.searchEntryBox:getRight() + DX)
+		self.nameTickBox:setX(self.idTickBox:getRight() + DX)
 		self.descTickBox:setX(self.nameTickBox:getRight() + DX)
 		self.tagsTickBox:setX(self.descTickBox:getRight() + DX)
 		self.mapsTickBox:setX(self.tagsTickBox:getRight() + DX)
-		self.nameTickBox:setY(self.searchLabel.y + 2)
-		self.descTickBox:setY(self.searchLabel.y + 2)
-		self.tagsTickBox:setY(self.searchLabel.y + 2)
-		self.mapsTickBox:setY(self.searchLabel.y + 2)
+		local y = self.searchLabel.y + 2
+		self.idTickBox:setY(y)
+		self.nameTickBox:setY(y)
+		self.descTickBox:setY(y)
+		self.tagsTickBox:setY(y)
+		self.mapsTickBox:setY(y)
 	else
 		self.searchEntryBox:setWidth(self.width - (self.searchEntryBox.x + DX))
-		self.nameTickBox:setX(self.searchEntryBox.x)
+		if self.width >= self.searchEntryBox.x + w[3] + w[4] + w[5] + w[6] + w[7] + DX*6 then
+			self.idTickBox:setX(self.searchEntryBox.x)
+		else
+			self.idTickBox:setX(DX)
+		end
+		self.nameTickBox:setX(self.idTickBox:getRight() + DX)
 		self.descTickBox:setX(self.nameTickBox:getRight() + DX)
 		self.tagsTickBox:setX(self.descTickBox:getRight() + DX)
 		self.mapsTickBox:setX(self.tagsTickBox:getRight() + DX)
-		self.nameTickBox:setY(self.searchEntryBox:getBottom())
-		self.descTickBox:setY(self.searchEntryBox:getBottom())
-		self.tagsTickBox:setY(self.searchEntryBox:getBottom())
-		self.mapsTickBox:setY(self.searchEntryBox:getBottom())
+		local y = self.searchEntryBox:getBottom()
+		self.idTickBox:setY(y)
+		self.nameTickBox:setY(y)
+		self.descTickBox:setY(y)
+		self.tagsTickBox:setY(y)
+		self.mapsTickBox:setY(y)
 	end
 	
 	self:setHeight(math.max(self.searchEntryBox:getBottom(), self.nameTickBox:getBottom()) + DY)
@@ -720,11 +751,13 @@ function ModListBox:checkFilter(item)
 	-- search filter
 	local keyWord = filter.searchEntryBox:getText()
 	if keyWord ~= nil and keyWord ~= "" then
-		local show, tableForFind = false, {}
+		local tableForFind = {}
 		
+		if filter.idTickBox.selected[1] then
+			table.insert(tableForFind, item.modInfo:getId())
+		end
 		if filter.nameTickBox.selected[1] then
 			table.insert(tableForFind, item.modInfo:getName())
-			table.insert(tableForFind, item.modInfoExtra.name or "")
 		end
 		if filter.descTickBox.selected[1] then
 			table.insert(tableForFind, item.modInfo:getDescription() or "")
@@ -742,13 +775,13 @@ function ModListBox:checkFilter(item)
 		end
 		
 		for _, s in ipairs(tableForFind) do
+			-- TODO: for each condition, without tableForFind?
 			if string.find(string.lower(s), string.lower(keyWord)) ~= nil then
-				show = true
-				break
+				return true
 			end
 		end
 		
-		if not show then return false end
+		return false
 	end
 	
 	return true
@@ -1092,54 +1125,102 @@ function ModPanelInfo:prerender()
 	local i = self.parent.listBox.selected
 	if self.selected ~= i then
 		local item = self.parent.listBox.items[i].item
+		local color_d, color_l = " <RGB:0.7,0.7,0.7> ", " <RGB:0.9,0.9,0.9> "
 		
-		local name = item.modInfoExtra.name or item.modInfo:getName()
+		-- formation name & description
+		local name = item.modInfo:getName()
 		local desc = item.modInfoExtra.description or item.modInfo:getDescription() or ""
 		local full_desc = " <H1> " .. name .. " <LINE> <TEXT> " .. desc .. " <LINE> "
 		self.descRichText:setText(full_desc)
 		self.descRichText:paginate()
 		
-		local extra_desc = " <TEXT> " .. getText("UI_NRK_ModSelector_Info_ModId") .. " " .. item.modInfo:getId() .. " <LINE> "
+		-- formation extra info
+		local extra_desc = " <TEXT> " .. color_l .. getText("UI_NRK_ModSelector_Info_ModId") ..
+		  " " .. color_d .. item.modInfo:getId() .. " <LINE> "
+		
 		if item.modInfoExtra.modversion ~= nil then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_ModVersion") .. " " .. item.modInfoExtra.modversion .. " <LINE> "
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_ModVersion") ..
+			  " " .. color_d .. item.modInfoExtra.modversion .. " <LINE> "
 		end
+		
 		if item.modInfoExtra.pzversion ~= nil then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_PZVersion") .. " " .. item.modInfoExtra.pzversion .. " <LINE> "
+			extra_desc = extra_desc .. color_l.. getText("UI_NRK_ModSelector_Info_PZVersion") ..
+			  " " .. color_d .. item.modInfoExtra.pzversion .. " <LINE> "
 		end
-		if item.modInfoExtra.tags ~= nil then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_Tags") .. " " .. table.concat(item.modInfoExtra.tags, ", ") .. " <LINE> "
+		
+		local tags = item.modInfoExtra.tags
+		if tags ~= nil and #tags > 1 then
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Tags") ..
+			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
+			for _ , tag in ipairs(tags) do
+				extra_desc = extra_desc .. "- " .. tag .. " <LINE> "
+			end
+			extra_desc = extra_desc .. " <INDENT:0> "
+		elseif tags ~= nil and #tags > 0 then
+			extra_desc = extra_desc .. color_l ..
+			  (getTextOrNull("UI_NRK_ModSelector_Info_Tag") or getText("UI_NRK_ModSelector_Info_Tags")) ..
+			  " " .. color_d .. tags[1] .. " <LINE> "
 		end
+		
 		local maps = item.modInfoExtra.maps
-		if maps ~= nil and #maps > 0 then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_Maps") .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
+		if maps ~= nil and #maps > 1 then
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Maps") ..
+			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
 			for _ , map in ipairs(maps) do
 				extra_desc = extra_desc .. "- " .. map .. " <LINE> "
 			end
 			extra_desc = extra_desc .. " <INDENT:0> "
+		elseif maps ~= nil and #maps > 0 then
+			extra_desc = extra_desc .. color_l ..
+			  (getTextOrNull("UI_NRK_ModSelector_Info_Map") or getText("UI_NRK_ModSelector_Info_Maps")) ..
+			  " " .. color_d .. maps[1] .. " <LINE> "
 		end
+		
 		local requires = item.modInfo:getRequire()
-		if requires and not requires:isEmpty() then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_Require") .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
+		if requires and requires:size() > 1 then
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Requires") ..
+			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
 			for i = 0, requires:size() - 1 do
-				if item.isAvailable then
-					extra_desc = extra_desc .. "- " .. requires:get(i) .. " <LINE> "
+				local requireId = requires:get(i)
+				local requireItem = self.parent.listBox.items[self.parent.listBox.indexById[requireId]]
+				if requireItem ~= nil and requireItem.item.isAvailable then
+					extra_desc = extra_desc .. "- " .. requireId .. " <LINE> "
 				else
-					extra_desc = extra_desc .. " <RED> - " .. requires:get(i) .. " <LINE> <TEXT> "
+					extra_desc = extra_desc .. " <RED> - " .. requireId .. color_d .. " <LINE> "
 				end
 			end
 			extra_desc = extra_desc .. " <INDENT:0> "
+		elseif requires and not requires:isEmpty() then
+			extra_desc = extra_desc .. color_l ..
+			  (getTextOrNull("UI_NRK_ModSelector_Info_Require") or getText("UI_NRK_ModSelector_Info_Requires")) ..
+			  " " .. color_d
+			local requireId = requires:get(0)
+			local requireItem = self.parent.listBox.items[self.parent.listBox.indexById[requireId]]
+			if requireItem ~= nil and requireItem.item.isAvailable then
+				extra_desc = extra_desc .. " " .. requireId .. " <LINE> "
+			else
+				extra_desc = extra_desc .. "  <RED> " .. requireId .. color_d .. " <LINE> "
+			end
 		end
+		
 		local authors = item.modInfoExtra.authors
-		if authors ~= nil and #authors > 0 then
-			extra_desc = extra_desc .. getText("UI_NRK_ModSelector_Info_Authors") .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
+		if authors ~= nil and #authors > 1 then
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Authors") ..
+			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
 			for _, author in ipairs(authors) do
 				extra_desc = extra_desc .. "- " .. author .. " <LINE> "
 			end
 			extra_desc = extra_desc .. " <INDENT:0> "
+		elseif authors ~= nil and #authors > 0 then
+			extra_desc = extra_desc .. color_l .. 
+			  (getTextOrNull("UI_NRK_ModSelector_Info_Author") or getText("UI_NRK_ModSelector_Info_Authors")) ..
+			  " " .. color_d .. authors[1] .. " <LINE> "
 		end
+		
 		self.extraRichText:setText(extra_desc)
 		self.extraRichText:paginate()
 		
+		-- formation links
 		if getSteamModeActive() and item.modInfo:getWorkshopID() then
 			self.workshopLabel:setVisible(true)
 			self.workshopEntry:setVisible(true)
@@ -1513,7 +1594,8 @@ function ModPanelSave:onSelected()
 			activeMods[mods:get(i)] = true
 		end
 	elseif data == "currentlist_lastsave" then
-		local mods = getSaveInfo(MainScreen.latestSaveWorld).activeMods:getMods()
+		local latestSave = MainScreen.latestSaveGameMode .. getFileSeparator() .. MainScreen.latestSaveWorld
+		local mods = getSaveInfo(latestSave).activeMods:getMods()
 		for i = 0, mods:size() - 1 do
 			activeMods[mods:get(i)] = true
 		end
@@ -1528,17 +1610,25 @@ function ModPanelSave:onSelected()
 		end
 	end
 	
+	local counts = {
+		withmap = self.parent.filterPanel.mapTickBox.optionData[1],
+		fromworkshop = self.parent.filterPanel.locationTickBox.optionData[2],
+		enabled = 0,
+		available = self.parent.filterPanel.availabilityTickBox.optionData[1],
+	}
 	for _, item in ipairs(self.parent.listBox.items) do
 		if activeMods[item.item.modInfo:getId()] or item.item.isFavor then
 			item.item.isActive = true
+			counts.enabled = counts.enabled + 1
 		else
 			item.item.isActive = false
 		end
 	end
+	self.parent.filterPanel:update(counts)
 end
 
 function ModPanelSave:onValidateSaveName(text)
-	return not text:contains(":") and not text:contains(";")
+	return not text:contains(":") and not text:contains(";") and text ~= "FavorList"
 end
 
 function ModPanelSave:onSaveListRequest()

@@ -1,8 +1,4 @@
 UI_NL = {
-	UI_NRK_ModSelector_Name = "Verbeterde mod-selectie",
-	UI_NRK_ModSelector_Desc = "Deze mod vervangt het menu «SELECTEER MODIFICATIES» door een meer functionele.",
-	
-	
 	UI_NRK_ModSelector_Filter_FilterLabel = "Toon mods:",
 	UI_NRK_ModSelector_Filter_WithmapFlag = "met kaarten (%1)",
 	UI_NRK_ModSelector_Filter_WithoutmapFlag = "zonder kaarten (%1)",
@@ -15,6 +11,7 @@ UI_NL = {
 	UI_NRK_ModSelector_Filter_AllButton = "Toon alles mods (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Zoek:",
+	UI_NRK_ModSelector_Filter_ByID = "op ID,",
 	UI_NRK_ModSelector_Filter_ByName = "op naam,",
 	UI_NRK_ModSelector_Filter_ByDesc = "op omschrijving,",
 	UI_NRK_ModSelector_Filter_ByTags = "op tags,",

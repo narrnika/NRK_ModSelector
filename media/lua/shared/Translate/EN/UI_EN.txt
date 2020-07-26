@@ -1,8 +1,4 @@
 UI_EN = {
-	UI_NRK_ModSelector_Name = "Improved selection of mods",
-	UI_NRK_ModSelector_Desc = "This mod replaces the «SELECT MODS» menu with a more functional one.",
-	
-	
 	UI_NRK_ModSelector_Filter_FilterLabel = "Show mods:",
 	UI_NRK_ModSelector_Filter_WithmapFlag = "with maps (%1)",
 	UI_NRK_ModSelector_Filter_WithoutmapFlag = "without maps (%1)",
@@ -15,6 +11,7 @@ UI_EN = {
 	UI_NRK_ModSelector_Filter_AllButton = "Show all mods (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Search:",
+	UI_NRK_ModSelector_Filter_ByID = "by ID,",
 	UI_NRK_ModSelector_Filter_ByName = "by name,",
 	UI_NRK_ModSelector_Filter_ByDesc = "by description,",
 	UI_NRK_ModSelector_Filter_ByTags = "by tags,",
@@ -38,10 +35,14 @@ UI_EN = {
 	UI_NRK_ModSelector_Info_ModId = "ID:",
 	UI_NRK_ModSelector_Info_ModVersion = "Version:",
 	UI_NRK_ModSelector_Info_PZVersion = "For PZ version:",
-	UI_NRK_ModSelector_Info_Require = "ID require mods:",
+	UI_NRK_ModSelector_Info_Requires = "ID require mods:",
+	UI_NRK_ModSelector_Info_Require = "ID require mod:",
 	UI_NRK_ModSelector_Info_Tags = "Tags:",
+	UI_NRK_ModSelector_Info_Tag = "Tag:",
 	UI_NRK_ModSelector_Info_Maps = "Maps:",
+	UI_NRK_ModSelector_Info_Map = "Map:",
 	UI_NRK_ModSelector_Info_Authors = "Authors:",
+	UI_NRK_ModSelector_Info_Author = "Author:",
 	
 	UI_NRK_ModSelector_Info_WorkshopLable = "Workshop ID:",
 	UI_NRK_ModSelector_Info_WorkshopTooltip = "Open Steam Overlay to this mod",
@@ -57,7 +58,7 @@ UI_EN = {
 	UI_NRK_ModSelector_Save_NoSelection = "[--Select to load--]",
 	UI_NRK_ModSelector_Save_AllDisabled = "Disable all mods",
 	UI_NRK_ModSelector_Save_List_Global = "Current list - global",
-	UI_NRK_ModSelector_Save_List_LastSave = "Current list - last save",
+	UI_NRK_ModSelector_Save_List_LastSave = "Current list - latest save",
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Current list - current save",
 	UI_NRK_ModSelector_Save_SaveButton = "Save",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Name:",

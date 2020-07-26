@@ -1,8 +1,4 @@
 ﻿UI_CN = {
-	UI_NRK_ModSelector_Name = "改进的模块选择",
-	UI_NRK_ModSelector_Desc = "此功能模块以功能更强大的功能取代了“选择模块“菜单。",
-	
-	
 	UI_NRK_ModSelector_Filter_FilterLabel = "显示：",
 	UI_NRK_ModSelector_Filter_WithmapFlag = "与地图 (%1)",
 	UI_NRK_ModSelector_Filter_WithoutmapFlag = "没有地图 (%1)",
@@ -15,10 +11,11 @@
 	UI_NRK_ModSelector_Filter_AllButton = "显示所有 (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "搜索：",
+	UI_NRK_ModSelector_Filter_ByID = "按ID,",
 	UI_NRK_ModSelector_Filter_ByName = "按名称,",
 	UI_NRK_ModSelector_Filter_ByDesc = "按描述,",
 	UI_NRK_ModSelector_Filter_ByTags = "按标签,",
-	UI_NRK_ModSelector_Filter_ByMaps = "通过地图",
+	UI_NRK_ModSelector_Filter_ByMaps = "按地图",
 	
 	
 	UI_NRK_ModSelector_List_Favorite = "收藏",

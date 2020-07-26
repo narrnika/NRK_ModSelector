@@ -1,8 +1,4 @@
 UI_PTBR = {
-	UI_NRK_ModSelector_Name = "Seleção aprimorada de mod",
-	UI_NRK_ModSelector_Desc = "Este mod substitui o menu «SELECIONAR MODS» por um menu mais funcional.",
-	
-	
 	UI_NRK_ModSelector_Filter_FilterLabel = "Mostrar mods:",
 	UI_NRK_ModSelector_Filter_WithmapFlag = "com mapas (%1)",
 	UI_NRK_ModSelector_Filter_WithoutmapFlag = "sem mapas (%1)",
@@ -15,6 +11,7 @@ UI_PTBR = {
 	UI_NRK_ModSelector_Filter_AllButton = "Mostrar todos os mods (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Pesquisa:",
+	UI_NRK_ModSelector_Filter_ByID = "por ID,",
 	UI_NRK_ModSelector_Filter_ByName = "por nome,",
 	UI_NRK_ModSelector_Filter_ByDesc = "por descrição,",
 	UI_NRK_ModSelector_Filter_ByTags = "por tagsy,",

@@ -1,8 +1,4 @@
 UI_FR = {
-	UI_NRK_ModSelector_Name = "Sélection de mod améliorée",
-	UI_NRK_ModSelector_Desc = "Ce mod remplace le menu «SÉLECTIONNER LES MODS» par un menu plus fonctionnel.",
-	
-	
 	UI_NRK_ModSelector_Filter_FilterLabel = "Afficher les mods:",
 	UI_NRK_ModSelector_Filter_WithmapFlag = "avec des cartes (%1)",
 	UI_NRK_ModSelector_Filter_WithoutmapFlag = "pas de cartes (%1)",
@@ -15,6 +11,7 @@ UI_FR = {
 	UI_NRK_ModSelector_Filter_AllButton = "Afficher tous les mods (%1)",
 	
 	UI_NRK_ModSelector_Filter_SearchLabel = "Recherche:",
+	UI_NRK_ModSelector_Filter_ByID = "par ID,",
 	UI_NRK_ModSelector_Filter_ByName = "par noms,",
 	UI_NRK_ModSelector_Filter_ByDesc = "par descriptions,",
 	UI_NRK_ModSelector_Filter_ByTags = "par mots-clés,",

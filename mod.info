@@ -1,12 +1,23 @@
 id=NRK_ModSelector
-
 name=NRK ModSelector
-description=This mod replaces the «SELECT MODS» menu with a more functional one.
+description= <LANG:EN> This mod replaces the «SELECT MODS» menu with a more functional one. <LINE> 
+description= <LANG:RU> Мод заменяет меню «ВЫБОР МОДОВ» на более функциональное. <LINE> 
+description= <LANG:AR> Este mod reemplaza el menú «SELECCIONAR MODS» por uno más funcional. <LINE> 
+description= <LANG:ES> Este mod reemplaza el menú «SELECCIONAR MODS» por uno más funcional. <LINE> 
+description= <LANG:PTBR> Este mod substitui o menu «SELECIONAR MODS» por um menu mais funcional. <LINE> 
+description= <LANG:IT> Questa mod sostituisce il menu «SELEZIONA MODS» con uno più funzionale. <LINE> 
+description= <LANG:FR> Ce mod remplace le menu «SÉLECTIONNER LES MODS» par un menu plus fonctionnel. <LINE> 
+description= <LANG:DE> Dieser Mod ersetzt das Menü «MOD AUSWAHL» durch ein funktionales. <LINE> 
+description= <LANG:NL> Deze mod vervangt het menu «SELECTEER MODIFICATIES» door een meer functionele. <LINE> 
+description= <LANG:CS> Tento režim nahrazuje nabídku «VYBRAT MÓDY» funkčnějším. <LINE> 
+description= <LANG:PL> Ten mod zastępuje menu «WYBIERZ MODY» bardziej funkcjonalnym. <LINE> 
+description= <LANG:TR> Bu mod «MODLARI SEÇ» menüsünü daha işlevsel bir mod ile değiştirir. <LINE> 
+description= <LANG:CN> 此功能模块以功能更强大的功能取代了“选择模块“菜单。 <LINE> 
+description= <LANG:JP> このmodは、「MODを選択」メニューをより機能的なものに置き換えます。 <LINE> 
+description= <LANG:KO> 이 모드는「모드 선택」메뉴를보다 기능적인 메뉴로 대체합니다. <LINE> 
+description= <LANG:TH> ม็อด นี้จะแทนที่เมนู 「เลือกม็อด」 ด้วยฟังก์ชันที่ใช้งานได้มากกว่า. <LINE> 
 
-name_extra=UI_NRK_ModSelector_Name
-description_extra=UI_NRK_ModSelector_Desc
-
-modversion=6
+modversion=7
 pzversion=41
 tags=MainMenu,Interface
 authors=Narrnika
