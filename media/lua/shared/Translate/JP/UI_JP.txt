@@ -58,7 +58,7 @@
 	UI_NRK_ModSelector_Save_List_CurrentSave = "現在のリスト―現在の保存",
 	UI_NRK_ModSelector_Save_SaveButton = "保存",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "保存する名前を入力",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "名前は文字「:」と「;」を含んでいてはなりません",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "名前は文字「:」と「;」を含んでいてはなりません",
 	UI_NRK_ModSelector_Save_DelButton = "削除",
 	UI_NRK_ModSelector_Save_DelButton_Request = "「%1」を削除しますか？",
 }

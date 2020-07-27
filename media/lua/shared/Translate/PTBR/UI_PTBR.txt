@@ -58,7 +58,7 @@ UI_PTBR = {
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Lista atual - atual arquivo",
 	UI_NRK_ModSelector_Save_SaveButton = "SALVAR",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Nome:",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "O nome não deve conter caracteres «;» e «:»",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "O nome não deve conter caracteres «;» e «:»",
 	UI_NRK_ModSelector_Save_DelButton = "APAGAR",
 	UI_NRK_ModSelector_Save_DelButton_Request = "Apagar «%1»?",
 }

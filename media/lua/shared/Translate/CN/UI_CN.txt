@@ -58,7 +58,7 @@
 	UI_NRK_ModSelector_Save_List_CurrentSave = "当前名单：当前保存",
 	UI_NRK_ModSelector_Save_SaveButton = "保存",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "名称：",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "名称中不得包含字符“;“和“:“",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "名称中不得包含字符“;“和“:“",
 	UI_NRK_ModSelector_Save_DelButton = "删除",
 	UI_NRK_ModSelector_Save_DelButton_Request = "删除“%1“?",
 }

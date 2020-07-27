@@ -17,6 +17,7 @@ UI_RU = {
 	UI_NRK_ModSelector_Filter_ByTags = "по тегам,",
 	UI_NRK_ModSelector_Filter_ByMaps = "по картам",
 	
+	
 	UI_NRK_ModSelector_List_Favorite = "В избранное",
 	UI_NRK_ModSelector_List_Unfavorite = "Убрать из избранного",
 	UI_NRK_ModSelector_List_On = "Включить",
@@ -51,6 +52,9 @@ UI_RU = {
 	UI_NRK_ModSelector_Info_LocationLabel = "Расположение на диске:",
 	UI_NRK_ModSelector_Info_LocationTooltip = "Открыть расположение файла",
 	UI_NRK_ModSelector_Info_FollowButton = "Перейти",
+	UI_NRK_ModSelector_Info_TagsButton = "Редактировать пользовательские тэги",
+	UI_NRK_ModSelector_Info_TagsButton_Request = "Введите свои тэги для мода «%1», разделяя их «,»",
+	UI_NRK_ModSelector_Info_TagsButton_Warning = "Тэги не должны содержать символа «:»",
 	
 	
 	UI_NRK_ModSelector_Save_Label = "Списки модов:",
@@ -61,10 +65,7 @@ UI_RU = {
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Текущий список - текущее сохранение",
 	UI_NRK_ModSelector_Save_SaveButton = "Сохранить",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Введите имя для сохранения списка:",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "Имя не должно содержать символы «;» и «:»",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "Имя не должно содержать символы «;» и «:»",
 	UI_NRK_ModSelector_Save_DelButton = "Удалить",
 	UI_NRK_ModSelector_Save_DelButton_Request = "Удалить список модов «%1»?",
-	
-	UI_NRK_ModSelector_List_Favorite = IGUI_CraftUI_Favorite
-	UI_NRK_ModSelector_List_Unfavorite = ContextMenu_Unfavorite
 }

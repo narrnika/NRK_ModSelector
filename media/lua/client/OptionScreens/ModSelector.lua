@@ -41,6 +41,8 @@ function ModSelector:new(x, y, width, height) -- call from MainScreen.lua
 	ModSelector.instance = o -- call from NewGameScreen.lua, LoadGameScreen.lua
 	setmetatable(o, self)
 	self.__index = self
+	o.customtagsfile = "saved_modtags.txt"
+	o.customtags = {}
 	-- o.isNewGame = false/true -- when call from MainScreen.lua/NewGameScreen.lua
 	-- o.loadGameFolder = folder -- when call from LoadGameScreen.lua
 	return o
@@ -350,6 +352,27 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 		item.isActive = activeMods:isModActive(modId)
 		if item.isActive then counts.enabled = counts.enabled + 1 end
 	end
+	
+	-- read custom tags
+	self.customtags = {}
+	local file = getFileReader(self.customtagsfile, true)
+	local line = file:readLine()
+	while line ~= nil do
+		--split modId and tags (by first ":", no luautils.split)
+		local sep = string.find(line, ":")
+		local modId, tags = "", ""
+		if sep ~= nil then
+			modId = string.sub(line, 0, sep - 1)
+			tags = string.sub(line, sep + 1)
+		end
+		
+		if modId ~= "" and tags ~= "" then
+			self.customtags[modId] = luautils.split(tags, ",")
+		end
+		
+		line = file:readLine()
+	end
+	file:close()
 	
 	-- update filter panel
 	self.filterPanel:update(counts)
@@ -767,6 +790,9 @@ function ModListBox:checkFilter(item)
 			for _, t in ipairs(item.modInfoExtra.tags or {}) do
 				table.insert(tableForFind, t)
 			end
+			for _, t in ipairs(self.parent.customtags[item.modInfo:getId()] or {}) do
+				table.insert(tableForFind, t)
+			end
 		end
 		if filter.mapsTickBox.selected[1] then
 			for _, map in ipairs(item.modInfoExtra.maps or {}) do
@@ -1119,6 +1145,13 @@ function ModPanelInfo:createChildren()
 	self.descRichText:setMargins(DX, DY, DX, DY)
 	self.extraRichText = ISRichTextLayout:new(self.width - self.scrollwidth)
 	self.extraRichText:setMargins(DX, DY, DX, DY)
+
+	self.customTagsButton = ISButton:new(
+		DX, 0, self.width - (DX*2 + self.scrollwidth), BUTTON_HGT,
+		getText("UI_NRK_ModSelector_Info_TagsButton"), self, self.onCustomTagsDialog
+	)
+	self.customTagsButton.borderColor = {r=1, g=1, b=1, a=0.1}
+	self:addChild(self.customTagsButton)
 end
 
 function ModPanelInfo:prerender()
@@ -1148,18 +1181,25 @@ function ModPanelInfo:prerender()
 			  " " .. color_d .. item.modInfoExtra.pzversion .. " <LINE> "
 		end
 		
-		local tags = item.modInfoExtra.tags
-		if tags ~= nil and #tags > 1 then
+		local tags, customtags = item.modInfoExtra.tags or {}, self.parent.customtags[item.modInfo:getId()] or {}
+		if #tags + #customtags > 1 then
 			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Tags") ..
 			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
 			for _ , tag in ipairs(tags) do
 				extra_desc = extra_desc .. "- " .. tag .. " <LINE> "
 			end
-			extra_desc = extra_desc .. " <INDENT:0> "
-		elseif tags ~= nil and #tags > 0 then
+			for _ , tag in ipairs(customtags) do
+				extra_desc = extra_desc .. " <GREEN> - " .. tag .. " <LINE> "
+			end
+			extra_desc = extra_desc .. color_d .. " <INDENT:0> "
+		elseif #tags == 1 then
 			extra_desc = extra_desc .. color_l ..
 			  (getTextOrNull("UI_NRK_ModSelector_Info_Tag") or getText("UI_NRK_ModSelector_Info_Tags")) ..
 			  " " .. color_d .. tags[1] .. " <LINE> "
+		elseif #customtags == 1 then
+			extra_desc = extra_desc .. color_l ..
+			  (getTextOrNull("UI_NRK_ModSelector_Info_Tag") or getText("UI_NRK_ModSelector_Info_Tags")) ..
+			  " " .. " <GREEN> " .. customtags[1] .. color_d .. " <LINE> "
 		end
 		
 		local maps = item.modInfoExtra.maps
@@ -1295,8 +1335,12 @@ function ModPanelInfo:prerender()
 	self.locationLabel:setY(bottom + 4)
 	self.locationEntry:setY(bottom + 2)
 	self.locationButton:setY(bottom)
+	bottom = self.locationButton:getBottom() + DY
 	
-	self:setScrollHeight(self.locationButton:getBottom() + DY)
+	self.customTagsButton:setY(bottom)
+	bottom = self.customTagsButton:getBottom() + DY
+	
+	self:setScrollHeight(bottom)
 	self:setStencilRect(0, 0, self:getWidth(), self:getHeight())
 	
 	ISPanelJoypad.prerender(self)
@@ -1329,6 +1373,48 @@ function ModPanelInfo:onGoButton(button)
 		activateSteamOverlayToWorkshopItem(self.workshopEntry.title)
 	elseif button.internal == "LOCATION" then
 		showFolderInDesktop(self.locationEntry.title)
+	end
+end
+
+function ModPanelInfo:onValidateCustomTags(text)
+	return not text:contains(":")
+end
+
+function ModPanelInfo:onCustomTagsDialog()
+	local modId = self.parent.listBox.items[self.selected].item.modInfo:getId()
+	local text = table.concat(self.parent.customtags[modId] or {}, ",") 
+	local modal = ISTextBox:new(
+		(getCore():getScreenWidth() / 2) - 140,
+		(getCore():getScreenHeight() / 2) - 90,
+		280, 180,
+		getText("UI_NRK_ModSelector_Info_TagsButton_Request", modId),
+		text, self, self.onCustomTagsConfirm
+	)
+	modal.validateText = getText("UI_NRK_ModSelector_Info_TagsButton_Warning")
+	modal:initialise()
+	modal:setCapture(true)
+	modal:setAlwaysOnTop(true)
+	modal:setValidateFunction(self, self.onValidateCustomTags)
+	modal:addToUIManager()
+end
+
+function ModPanelInfo:onCustomTagsConfirm(button)
+	if button.internal == "OK" then
+		local modId = self.parent.listBox.items[self.selected].item.modInfo:getId()
+		local text = button.parent.entry:getText()
+		self.parent.customtags[modId] = luautils.split(text, ",")
+		
+		-- write to file
+		local file = getFileWriter(self.parent.customtagsfile, true, false)
+		for id, tags in pairs(self.parent.customtags) do
+			if #tags > 0 then
+				file:write(id..":"..table.concat(tags, ",").."\n")
+			end
+		end
+		file:close()
+		
+		-- for force update info-panel
+		self.selected = self.selected + 1
 	end
 end
 
@@ -1447,19 +1533,32 @@ function ModPanelPoster:update()
 	end
 end
 
---[[function ModPanelPoster:render()
-	ISPanelJoypad.render(self)
+function ModPanelPoster:render()
+	local l = {r = 0.4, g = 0.4, b = 0.4, a = 1}
+	local r = {r = 0.4, g = 0.4, b = 0.4, a = 1}
+	local c = {r = 0.4, g = 0.4, b = 0.4, a = 1}
 	
 	if self.leftImage:getTexture() then
-		self.leftImage:drawRectBorder(0, 0, self.leftImage:getWidth(), self.leftImage:getHeight(), 1, 1, 1, 1)
+		if self.leftImage:isMouseOver() and #self.textures > 1 then l = {r = 1, g = 1, b = 1, a = 1} end
+		local x, y = 0, 0
+		local w, h = self.centerImage:getX() - self.leftImage:getX(), self.leftImage:getHeight()
+		self.leftImage.javaObject:DrawTextureScaledColor(nil, x, y, 1, h, l.r, l.g, l.b, l.a)
+		self.leftImage.javaObject:DrawTextureScaledColor(nil, x+1, y, w-1, 1, l.r, l.g, l.b, l.a)
+		self.leftImage.javaObject:DrawTextureScaledColor(nil, x+1, y+h-1, w-1, 1, l.r, l.g, l.b, l.a)
 	end
 	if self.rightImage:getTexture() then
-		self.rightImage:drawRectBorder(0, 0, self.rightImage:getWidth(), self.rightImage:getHeight(), 1, 1, 1, 1)
+		if self.rightImage:isMouseOver() and #self.textures > 1 then r = {r = 1, g = 1, b = 1, a = 1} end
+		local x, y = self.centerImage:getRight() - self.rightImage:getX(), 0
+		local w, h = self.rightImage:getRight() - self.centerImage:getRight(), self.rightImage:getHeight()
+		self.rightImage.javaObject:DrawTextureScaledColor(nil, x, y, w-1, 1, r.r, r.g, r.b, r.a)
+		self.rightImage.javaObject:DrawTextureScaledColor(nil, x+w-1, y, 1, h, r.r, r.g, r.b, r.a)
+		self.rightImage.javaObject:DrawTextureScaledColor(nil, x, y+h-1, w-1, 1, r.r, r.g, r.b, r.a)
 	end
 	if self.centerImage:getTexture() then
-		self.centerImage:drawRectBorder(0, 0, self.centerImage:getWidth(), self.centerImage:getHeight(), 1, 1, 1, 1)
+		if self.centerImage:isMouseOver() and #self.textures > 1 then c = {r = 1, g = 1, b = 1, a = 1} end
+		self.centerImage:drawRectBorder(0, 0, self.centerImage:getWidth(), self.centerImage:getHeight(), c.a, c.r, c.g, c.b)
 	end
-end]]
+end
 
 function ModPanelPoster:expandPoster()
 	if #self.textures > 1 then
@@ -1642,7 +1741,7 @@ function ModPanelSave:onSaveListRequest()
 	)
 	modal.maxChars = 50
 	modal.noEmpty = true
-	modal.validateText = getText("UI_NRK_ModSelector_Save_SaveButton_tt")
+	modal.validateText = getText("UI_NRK_ModSelector_Save_SaveButton_Warning")
 	modal:initialise()
 	modal:setCapture(true)
 	modal:setAlwaysOnTop(true)
@@ -1689,9 +1788,3 @@ function ModPanelSave:onDelListConfirm(button)
 		self:updateOptions()
 	end
 end
-
--- TODO: Events.OnModsModified - changing contents of mods (doesn't work when deleting/adding mod); use?
--- TODO: get/set OptionModsEnabled - no need?
--- TODO: mapGroups/mapConflicts/ModOrderUI - it's work?
--- TODO: Joypad - now only "Back/Accept" work
--- TODO: Create new mod / edit mod.info???

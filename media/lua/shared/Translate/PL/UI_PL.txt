@@ -58,7 +58,7 @@ UI_PL = {
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Aktualna lista - aktualna zapis gry",
 	UI_NRK_ModSelector_Save_SaveButton = "ZAPISZ",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Nazwa:",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "Nazwa nie mo¿e zawieraæ znaków «;» i «:»",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "Nazwa nie mo¿e zawieraæ znaków «;» i «:»",
 	UI_NRK_ModSelector_Save_DelButton = "USUÑ",
 	UI_NRK_ModSelector_Save_DelButton_Request = "Usun¹æ «%1»?",
 }

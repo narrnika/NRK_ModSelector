@@ -58,7 +58,7 @@ UI_NL = {
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Huidige lijst - huidige save",
 	UI_NRK_ModSelector_Save_SaveButton = "OPSLAAN",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Naam:",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "Naam mag de tekens «;» en «:» niet bevatten",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "Naam mag de tekens «;» en «:» niet bevatten",
 	UI_NRK_ModSelector_Save_DelButton = "VERWIJDEREN",
 	UI_NRK_ModSelector_Save_DelButton_Request = "Verwijder «%1»?",
 }

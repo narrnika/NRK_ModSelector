@@ -58,7 +58,7 @@ UI_ES = {
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Lista actual - actual guardar",
 	UI_NRK_ModSelector_Save_SaveButton = "GUARDAR",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Nombre:",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "El nombre no debe contener caracteres «;» y «:»",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "El nombre no debe contener caracteres «;» y «:»",
 	UI_NRK_ModSelector_Save_DelButton = "BORRAR",
 	UI_NRK_ModSelector_Save_DelButton_Request = "¿Eliminar «%1»?",
 }

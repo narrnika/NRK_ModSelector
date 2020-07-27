@@ -57,7 +57,7 @@ UI_TR = {
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Geçerli liste - geçerli kayýt",
 	UI_NRK_ModSelector_Save_SaveButton = "KAYDET",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Ýsim:",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "Ad «;» ve «:» karakterlerini içermemelidir",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "Ad «;» ve «:» karakterlerini içermemelidir",
 	UI_NRK_ModSelector_Save_DelButton = "SÝL",
 	UI_NRK_ModSelector_Save_DelButton_Request = "Sil «%1»?",
 }

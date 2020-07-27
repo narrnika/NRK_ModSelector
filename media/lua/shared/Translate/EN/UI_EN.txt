@@ -52,6 +52,9 @@ UI_EN = {
 	UI_NRK_ModSelector_Info_LocationLabel = "Location:",
 	UI_NRK_ModSelector_Info_LocationTooltip = "Open file location",
 	UI_NRK_ModSelector_Info_FollowButton = "Follow",
+	UI_NRK_ModSelector_Info_TagsButton = "Edit custom tags",
+	UI_NRK_ModSelector_Info_TagsButton_Request = "Enter your tags for mod «%1», separate it «,»",
+	UI_NRK_ModSelector_Info_TagsButton_Warning = "Tags must not contain character «:»",
 	
 	
 	UI_NRK_ModSelector_Save_Label = "Mod's lists:",
@@ -62,7 +65,7 @@ UI_EN = {
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Current list - current save",
 	UI_NRK_ModSelector_Save_SaveButton = "Save",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Name:",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "Name must not contain characters «;» and «:»",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "Name must not contain characters «;» and «:»",
 	UI_NRK_ModSelector_Save_DelButton = "Delete",
 	UI_NRK_ModSelector_Save_DelButton_Request = "Delete «%1»?",
 }

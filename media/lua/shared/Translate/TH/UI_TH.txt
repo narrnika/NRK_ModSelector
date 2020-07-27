@@ -55,7 +55,7 @@ UI_TH = {
 	UI_NRK_ModSelector_Save_AllDisabled = "ปิดทุกอย่าง",
 	UI_NRK_ModSelector_Save_SaveButton = "บันทึก",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "ชื่อ :",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "ชื่อต้องไม่มีอักขระ «;» และ «:»",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "ชื่อต้องไม่มีอักขระ «;» และ «:»",
 	UI_NRK_ModSelector_Save_DelButton = "ลบ",
 	UI_NRK_ModSelector_Save_DelButton_Request = "ลบ «%1»?",
 }

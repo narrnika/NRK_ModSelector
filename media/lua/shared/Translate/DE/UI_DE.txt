@@ -58,7 +58,7 @@ UI_DE = {
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Aktuelle Liste - aktuelle Sicherungsdatei",
 	UI_NRK_ModSelector_Save_SaveButton = "SPEICHERN",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Name:",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "Name darf keine Zeichen enthalten «;» und «:»",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "Name darf keine Zeichen enthalten «;» und «:»",
 	UI_NRK_ModSelector_Save_DelButton = "LÖSCHEN",
 	UI_NRK_ModSelector_Save_DelButton_Request = "«%1» wirklich Löschen?",
 }

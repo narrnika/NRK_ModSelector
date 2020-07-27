@@ -58,7 +58,7 @@ UI_CS = {
 	UI_NRK_ModSelector_Save_List_CurrentSave = "Aktuální seznam - aktuální uloženou pozici",
 	UI_NRK_ModSelector_Save_SaveButton = "ULOŽIT",
 	UI_NRK_ModSelector_Save_SaveButton_Request = "Název:",
-	UI_NRK_ModSelector_Save_SaveButton_tt = "Název nesmí obsahovat znaky «;» a «:»",
+	UI_NRK_ModSelector_Save_SaveButton_Warning = "Název nesmí obsahovat znaky «;» a «:»",
 	UI_NRK_ModSelector_Save_DelButton = "SMAZAT",
 	UI_NRK_ModSelector_Save_DelButton_Request = "Smazat «%1»?",
 }
