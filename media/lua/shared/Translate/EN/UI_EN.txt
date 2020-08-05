@@ -22,6 +22,7 @@ UI_EN = {
 	UI_NRK_ModSelector_List_Unfavorite = "Remove from favorites",
 	UI_NRK_ModSelector_List_On = "On",
 	UI_NRK_ModSelector_List_Off = "Off",
+	UI_NRK_ModSelector_List_Warning_OldMod = "Mod «%1» looks too old.<br>Version of PZ, declared by author: 39<br>Enable anyway?",
 	
 	UI_NRK_ModSelector_Status_Broken = " (broken)",
 	UI_NRK_ModSelector_Status_Enabled = " (enabled)",
@@ -55,6 +56,9 @@ UI_EN = {
 	UI_NRK_ModSelector_Info_TagsButton = "Edit custom tags",
 	UI_NRK_ModSelector_Info_TagsButton_Request = "Enter your tags for mod «%1», separate it «,»",
 	UI_NRK_ModSelector_Info_TagsButton_Warning = "Tags must not contain character «:»",
+	UI_NRK_ModSelector_Info_TagsCombo_Add = "Add",
+	UI_NRK_ModSelector_Info_TagsCombo_Del = "Delete",
+	UI_NRK_ModSelector_Info_TagsCombo_All = "all tags",
 	
 	
 	UI_NRK_ModSelector_Save_Label = "Mod's lists:",

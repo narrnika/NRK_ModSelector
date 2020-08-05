@@ -32,6 +32,8 @@ local BROKEN_ICON = getTexture("media/ui/icon_broken.png")
 local FAVORITE_ICON = getTexture("media/ui/FavoriteStar.png")
 local EXPANDED_ICON = getTexture("media/ui/TreeExpanded.png")
 local COLLAPSED_ICON = getTexture("media/ui/TreeCollapsed.png")
+local MINUS_ICON = getTexture("media/ui/Moodle_internal_minus_red.png")
+local PLUS_ICON = getTexture("media/ui/Moodle_internal_plus_green.png")
 
 
 ModSelector = ISPanelJoypad:derive("ModSelector")
@@ -42,7 +44,8 @@ function ModSelector:new(x, y, width, height) -- call from MainScreen.lua
 	setmetatable(o, self)
 	self.__index = self
 	o.customtagsfile = "saved_modtags.txt"
-	o.customtags = {}
+	o.customtags = {} -- {modId = {tag, tag, tag, ...}, modId = {tag, tag, tag, ...}, ...}
+	o.customtagsall = {} -- {tag1 = count, tag2 = count, ...}
 	-- o.isNewGame = false/true -- when call from MainScreen.lua/NewGameScreen.lua
 	-- o.loadGameFolder = folder -- when call from LoadGameScreen.lua
 	return o
@@ -293,6 +296,7 @@ function ModSelector:onResolutionChange(oldw, oldh, neww, newh) -- call from Mai
 	self.infoPanel.workshopEntry:setWidth(self.infoPanel:getWidth() - (BUTTON_WDH + DX*2 + self.infoPanel.scrollwidth) - (self.infoPanel.workshopLabel:getRight() + DX))
 	self.infoPanel.urlEntry:setWidth(self.infoPanel:getWidth() - (BUTTON_WDH + DX*2 + self.infoPanel.scrollwidth) - (self.infoPanel.urlLabel:getRight() + DX))
 	self.infoPanel.locationEntry:setWidth(self.infoPanel:getWidth() - (BUTTON_WDH + DX*2 + self.infoPanel.scrollwidth) - (self.infoPanel.locationLabel:getRight() + DX))
+	self.infoPanel.customTagsButton:setWidth(self.infoPanel:getWidth() - (DX*2 + self.infoPanel.scrollwidth))
 	
 	self.savePanel:setWidth(self.getModButton:getX() - (self.backButton:getRight() + DX*2))
 end
@@ -355,6 +359,7 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 	
 	-- read custom tags
 	self.customtags = {}
+	self.customtagsall = {}
 	local file = getFileReader(self.customtagsfile, true)
 	local line = file:readLine()
 	while line ~= nil do
@@ -368,6 +373,13 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 		
 		if modId ~= "" and tags ~= "" then
 			self.customtags[modId] = luautils.split(tags, ",")
+			for _, tag in ipairs(self.customtags[modId]) do
+				if not self.customtagsall[tag] then
+					self.customtagsall[tag] = 1
+				else
+					self.customtagsall[tag] = self.customtagsall[tag] + 1
+				end
+			end
 		end
 		
 		line = file:readLine()
@@ -912,6 +924,31 @@ function ModListBox:doDrawItem(y, i, alt)
 	return y
 end
 
+function ModListBox:doActiveRequest(item, doFavor)
+	local pzversion = tonumber(item.modInfoExtra.pzversion)
+	if pzversion and pzversion < 41 then -- TODO: get current version
+		local modal = ISModalDialog:new(
+			(getCore():getScreenWidth() - 230)/2,
+			(getCore():getScreenHeight() - 120)/2,
+			230, 120,
+			getText("UI_NRK_ModSelector_List_Warning_OldMod", item.modInfo:getId(), pzversion),
+			true, self,
+			function (target, button, param1, param2)
+				if button.internal == "YES" then
+					target:doActive(param1, param2)
+				end
+			end,
+			nil, item, doFavor
+		)
+		modal:initialise()
+		modal:setCapture(true)
+		modal:setAlwaysOnTop(true)
+		modal:addToUIManager()
+	else
+		self:doActive(item, doFavor)
+	end
+end
+
 function ModListBox:doActive(item, doFavor)
 	local modId = item.modInfo:getId()
 	print(NRKLOG, "do Active", modId, doFavor)
@@ -977,11 +1014,11 @@ function ModListBox:onMouseUp(x, y)
 	if self.mouseoverbutton and self.pressedbutton and self.mouseoverbutton.internal == self.pressedbutton.internal and self.mouseoverbutton.selected == self.pressedbutton.selected then
 		local item = self.items[self.pressedbutton.selected].item
 		if self.pressedbutton.internal == "ON" then
-			self:doActive(item)
+			self:doActiveRequest(item)
 		elseif self.pressedbutton.internal == "OFF" then
 			self:doInactive(item)
 		elseif self.pressedbutton.internal == "FAVOR" then
-			self:doActive(item, true)
+			self:doActiveRequest(item, true)
 		elseif self.pressedbutton.internal == "UNFAVOR" then
 			self:doInactive(item)
 		end
@@ -1000,6 +1037,10 @@ function ModListBox:onMouseUpOutside(x, y)
 end
 
 function ModListBox:onMouseDoubleClick(x, y)
+	if self:isMouseOverScrollBar() then
+		return
+	end
+	
 	if self.mouseoverbutton then
 		self.pressedbutton = self.mouseoverbutton
 		return
@@ -1009,7 +1050,7 @@ function ModListBox:onMouseDoubleClick(x, y)
 	if not item.isAvailable then return end
 	
 	if not item.isActive then
-		self:doActive(item)
+		self:doActiveRequest(item)
 	else
 		self:doInactive(item)
 	end
@@ -1390,19 +1431,119 @@ function ModPanelInfo:onCustomTagsDialog()
 		getText("UI_NRK_ModSelector_Info_TagsButton_Request", modId),
 		text, self, self.onCustomTagsConfirm
 	)
-	modal.validateText = getText("UI_NRK_ModSelector_Info_TagsButton_Warning")
+	modal.validateTooltipText = getText("UI_NRK_ModSelector_Info_TagsButton_Warning")
 	modal:initialise()
 	modal:setCapture(true)
 	modal:setAlwaysOnTop(true)
 	modal:setValidateFunction(self, self.onValidateCustomTags)
 	modal:addToUIManager()
+	
+	modal.addComboBox = ISComboBox:new(
+		modal.entry:getX(), modal.entry:getBottom() + DY, (modal.entry:getWidth() - DX)/2, BUTTON_HGT, modal,
+		function (modal)
+			local tags = luautils.split(modal.entry:getText(), ",")
+			local addtag = modal.addComboBox:getOptionData(modal.addComboBox.selected)
+			table.insert(tags, addtag)
+			modal.entry:setText(table.concat(tags, ","))
+			modal.entry:onTextChange()
+		end
+	)
+	modal.addComboBox.noSelectionText = getText("UI_NRK_ModSelector_Info_TagsCombo_Add")
+	modal.addComboBox.image = PLUS_ICON
+	modal:addChild(modal.addComboBox)
+	
+	modal.delComboBox = ISComboBox:new(
+		modal.addComboBox:getRight() + DX, modal.entry:getBottom() + DY, (modal.entry:getWidth() - DX)/2, BUTTON_HGT, modal,
+		function (modal)
+			local index = modal.delComboBox.selected
+			if modal.delComboBox:getOptionData(index) == "all" then
+				modal.entry:setText("")
+			else
+				local tags, deltag = {}, modal.delComboBox:getOptionText(index)
+				for _, tag in ipairs(luautils.split(modal.entry:getText(), ",")) do
+					if tag ~= deltag then
+						table.insert(tags, tag)
+					end
+				end
+				modal.entry:setText(table.concat(tags, ","))
+			end
+			modal.entry:onTextChange()
+		end
+	)
+	modal.delComboBox.noSelectionText = getText("UI_NRK_ModSelector_Info_TagsCombo_Del")
+	modal.delComboBox.image = MINUS_ICON
+	modal:addChild(modal.delComboBox)
+	
+	modal.entry.onTextChange = function(entry)
+		local current_tags_d = luautils.split(entry:getInternalText(), ",") -- no entry:getText() - it's return previous text
+		local current_tags_a = {}
+		for _, tag in ipairs(current_tags_d) do
+			current_tags_a[tag] = true
+		end
+		local all_tags = {}
+		for tag, _ in pairs(self.parent.customtagsall) do
+			if not current_tags_a[tag] then
+				table.insert(all_tags, tag)
+			end
+		end
+		table.sort(all_tags)
+		
+		if #all_tags == 0 then
+			entry.parent.addComboBox.disabled = true
+		else
+			entry.parent.addComboBox:clear()
+			for _, tag in ipairs(all_tags) do
+				local count = self.parent.customtagsall[tag]
+				entry.parent.addComboBox:addOptionWithData(tag .. " [" .. tostring(count) .. "]", tag)
+			end
+			entry.parent.addComboBox.disabled = false
+		end
+		entry.parent.addComboBox.selected = 0
+		
+		if #current_tags_d == 0 then
+			entry.parent.delComboBox.disabled = true
+		else
+			entry.parent.delComboBox:clear()
+			entry.parent.delComboBox:addOptionWithData(getText("UI_NRK_ModSelector_Info_TagsCombo_All"), "all")
+			for _, tag in ipairs(current_tags_d) do
+				entry.parent.delComboBox:addOption(tag)
+			end
+			entry.parent.delComboBox.disabled = false
+		end
+		entry.parent.delComboBox.selected = 0
+	end
+	
+	modal.entry:onTextChange()
 end
 
 function ModPanelInfo:onCustomTagsConfirm(button)
 	if button.internal == "OK" then
 		local modId = self.parent.listBox.items[self.selected].item.modInfo:getId()
 		local text = button.parent.entry:getText()
-		self.parent.customtags[modId] = luautils.split(text, ",")
+		local old_tags, new_tags = {}, {}
+		for _, tag in ipairs(self.parent.customtags[modId] or {}) do
+			old_tags[tag] = true
+		end
+		for _, tag in ipairs(luautils.split(text, ",")) do
+			new_tags[tag] = true
+		end
+		
+		-- update tags and counts
+		for tag, _ in pairs(old_tags) do
+			if not new_tags[tag] then
+				self.parent.customtagsall[tag] = self.parent.customtagsall[tag] - 1
+			end
+		end
+		self.parent.customtags[modId] = {}
+		for tag, _ in pairs(new_tags) do
+			if not self.parent.customtagsall[tag] then
+				self.parent.customtagsall[tag] = 1
+			elseif not old_tags[tag] then
+				self.parent.customtagsall[tag] = self.parent.customtagsall[tag] + 1
+			end
+			table.insert(self.parent.customtags[modId], tag)
+		end
+		table.sort(self.parent.customtags[modId])
 		
 		-- write to file
 		local file = getFileWriter(self.parent.customtagsfile, true, false)
@@ -1741,7 +1882,7 @@ function ModPanelSave:onSaveListRequest()
 	)
 	modal.maxChars = 50
 	modal.noEmpty = true
-	modal.validateText = getText("UI_NRK_ModSelector_Save_SaveButton_Warning")
+	modal.validateTooltipText = getText("UI_NRK_ModSelector_Save_SaveButton_Warning")
 	modal:initialise()
 	modal:setCapture(true)
 	modal:setAlwaysOnTop(true)

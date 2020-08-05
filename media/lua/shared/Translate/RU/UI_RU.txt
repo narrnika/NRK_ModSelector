@@ -22,6 +22,7 @@ UI_RU = {
 	UI_NRK_ModSelector_List_Unfavorite = "Убрать из избранного",
 	UI_NRK_ModSelector_List_On = "Включить",
 	UI_NRK_ModSelector_List_Off = "Выключить",
+	UI_NRK_ModSelector_List_Warning_OldMod = "Похоже, мод «%1» слишком старый.<br>Версия PZ, указанная автором: %2<br>Всё равно включить?",
 	
 	UI_NRK_ModSelector_Status_Broken = " (сломано)",
 	UI_NRK_ModSelector_Status_Enabled = " (включено)",
@@ -55,6 +56,9 @@ UI_RU = {
 	UI_NRK_ModSelector_Info_TagsButton = "Редактировать пользовательские тэги",
 	UI_NRK_ModSelector_Info_TagsButton_Request = "Введите свои тэги для мода «%1», разделяя их «,»",
 	UI_NRK_ModSelector_Info_TagsButton_Warning = "Тэги не должны содержать символа «:»",
+	UI_NRK_ModSelector_Info_TagsCombo_Add = "Добавить",
+	UI_NRK_ModSelector_Info_TagsCombo_Del = "Удалить",
+	UI_NRK_ModSelector_Info_TagsCombo_All = "все тэги",
 	
 	
 	UI_NRK_ModSelector_Save_Label = "Списки модов:",
