@@ -1,6 +1,5 @@
 require "ISUI/ISPanelJoypad"
 require "ISUI/ISScrollingListBox"
-
 require "ISUI/ISLabel"
 require "ISUI/ISButton"
 require "ISUI/ISTickBox"
@@ -10,9 +9,11 @@ require "ISUI/ISImage"
 require "ISUI/ISComboBox"
 require "ISUI/ISTextBox"
 require "ISUI/ISModalDialog"
-
+require "ISUI/ISPanelCompact"
+require "ISUI/ISTextEntryList"
 require "luautils"
 
+local NRKModDB = require "NRK_ModDB" or {}
 local NRKLOG = "NRK_ModSelector"
 
 local FONT_HGT_TITLE = getTextManager():getFontHeight(UIFont.Title)
@@ -45,7 +46,7 @@ function ModSelector:new(x, y, width, height) -- call from MainScreen.lua
 	self.__index = self
 	o.customtagsfile = "saved_modtags.txt"
 	o.customtags = {} -- {modId = {tag, tag, tag, ...}, modId = {tag, tag, tag, ...}, ...}
-	o.customtagsall = {} -- {tag1 = count, tag2 = count, ...}
+	o.counters = {} -- see ModSelector:populateListBox()
 	-- o.isNewGame = false/true -- when call from MainScreen.lua/NewGameScreen.lua
 	-- o.loadGameFolder = folder -- when call from LoadGameScreen.lua
 	return o
@@ -63,10 +64,10 @@ function ModSelector:create() -- call from MainScreen.lua
 	self.titleLabel:setX((self.width - self.titleLabel:getWidth())/2)
 	self:addChild(self.titleLabel)
 	
-	self.filterPanel = ModPanelFilter:new(DX, FONT_HGT_TITLE + DY*2, halfW, BUTTON_HGT*4 + DY*2)
+	self.filterPanel = ModPanelFilter:new(DX, FONT_HGT_TITLE + DY*2, halfW, BUTTON_HGT*2 + DY*3)
 	self:addChild(self.filterPanel)
 	
-	self.listBox = ModListBox:new(DX, self.filterPanel:getBottom() + DY, halfW, self.height - (self.filterPanel:getBottom() + BUTTON_HGT + DY*3))
+	self.listBox = ModListBox:new(DX, self.filterPanel:getBottom() + DY, halfW, halfH + halfH - self.filterPanel:getHeight())
 	self:addChild(self.listBox)
 	
 	self.posterPanel = ModPanelPoster:new(halfW + DX*2, FONT_HGT_TITLE + DY*2, halfW, halfH)
@@ -277,11 +278,15 @@ function ModSelector:onResolutionChange(oldw, oldh, neww, newh) -- call from Mai
 	self.titleLabel:setX((self.width - self.titleLabel:getWidth())/2)
 	
 	self.filterPanel:setWidth(halfW)
-	self.filterPanel:resize()
+	self.filterPanel.filter:setWidth(halfW - 2*DX)
+	self.filterPanel.search:setWidth(halfW - 2*DX)
+	self.filterPanel.search:recalcChildren()
+	self.filterPanel.searchEntryBox:setHeight(self.filterPanel.search.height - 6)
 	
 	self.listBox:setWidth(halfW)
 	self.listBox.btn.x1 = halfW - (self.listBox.btn.w1 + DX)
 	self.listBox.btn.x2 = halfW - (self.listBox.btn.w2 + DX)
+	self.listBox:setHeight(halfH + halfH - self.filterPanel:getHeight())
 	
 	
 	self.posterPanel:setX(halfW + DX*2)
@@ -336,30 +341,59 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 	end
 	
 	-- write info to items and calculate
+	self.counters = {
+		workshop = 0,
+		map = 0,
+		translate = 0,
+		available = 0,
+		enabled = 0,
+		favor = 0,
+		pzversions = {}, -- {version1 = count, version2 = count, ...}
+		authors = {}, -- {author1 = count, author2 = count, ...}
+		originaltags = {}, -- {tag1 = count, tag2 = count, ...}
+		customtags = {}, -- {tag1 = count, tag2 = count, ...}
+	}
 	self.savePanel:updateOptions()
-	local favorList = {}; for _, modId in ipairs(self.savePanel.savelist["FavorList"] or {}) do favorList[modId] = true end
+	local favorList = {}
+	for _, modId in ipairs(self.savePanel.savelist["FavorList"] or {}) do
+		favorList[modId] = true
+	end
 	local activeMods = (self.loadGameFolder or self.isNewGame) and ActiveMods.getById("currentGame") or ActiveMods.getById("default")
-	local counts = {withmap = 0, fromworkshop = 0, enabled = 0, available = 0}
 	for _, i in ipairs(self.listBox.items) do
-		local item, modId = i.item, i.item.modInfo:getId()
+		local item, modId, dir = i.item, i.item.modInfo:getId(), i.item.modInfo:getDir()
 		
-		if item.modInfo:getWorkshopID() then counts.fromworkshop = counts.fromworkshop + 1 end
+		if item.modInfo:getWorkshopID() then self.counters.workshop = self.counters.workshop + 1 end
 		
 		item.modInfoExtra = self:readInfoExtra(modId)
-		if item.modInfoExtra.maps then counts.withmap = counts.withmap + 1 end
+		if item.modInfoExtra.maps then self.counters.map = self.counters.map + 1 end
+		
+		item.modInfoExtra.translate = fileExists(dir .. string.gsub("/media/lua/shared/Translate", "/", getFileSeparator()))
+		if item.modInfoExtra.translate then self.counters.translate = self.counters.translate + 1 end
 		
 		if item.isAvailable == nil then item.isAvailable = self:checkRequire(modId) end
-		if item.isAvailable then counts.available = counts.available + 1 end
-		
-		item.isFavor = favorList[modId] or false
+		if item.isAvailable then self.counters.available = self.counters.available + 1 end
 		
 		item.isActive = activeMods:isModActive(modId)
-		if item.isActive then counts.enabled = counts.enabled + 1 end
+		if item.isActive then self.counters.enabled = self.counters.enabled + 1 end
+		
+		item.isFavor = favorList[modId] or false
+		if item.isFavor then self.counters.favor = self.counters.favor + 1 end
+		
+		
+		local pzversion = item.modInfoExtra.pzversion
+		if pzversion then
+			self.counters.pzversions[pzversion] = (self.counters.pzversions[pzversion] or 0) + 1
+		end
+		for _, author in ipairs(item.modInfoExtra.authors or {}) do
+			self.counters.authors[author] = (self.counters.authors[author] or 0) + 1
+		end
+		for _, tag in ipairs(item.modInfoExtra.tags or {}) do
+			self.counters.originaltags[tag] = (self.counters.originaltags[tag] or 0) + 1
+		end
 	end
 	
 	-- read custom tags
 	self.customtags = {}
-	self.customtagsall = {}
 	local file = getFileReader(self.customtagsfile, true)
 	local line = file:readLine()
 	while line ~= nil do
@@ -374,21 +408,13 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 		if modId ~= "" and tags ~= "" then
 			self.customtags[modId] = luautils.split(tags, ",")
 			for _, tag in ipairs(self.customtags[modId]) do
-				if not self.customtagsall[tag] then
-					self.customtagsall[tag] = 1
-				else
-					self.customtagsall[tag] = self.customtagsall[tag] + 1
-				end
+				self.counters.customtags[tag] = (self.counters.customtags[tag] or 0) + 1
 			end
 		end
 		
 		line = file:readLine()
 	end
 	file:close()
-	
-	-- update filter panel
-	self.filterPanel:update(counts)
-	self.filterPanel:resize()
 end
 
 function ModSelector:checkRequire(modId)
@@ -422,7 +448,7 @@ end
 
 function ModSelector:readInfoExtra(modId)
 	local modInfo = getModInfoByID(modId)
-	local modInfoExtra = {}
+	local modInfoExtra = NRKModDB[modId] or {}
 	
 	-- mod with maps?
 	local mapList = getMapFoldersForMod(modId)
@@ -461,22 +487,31 @@ function ModSelector:readInfoExtra(modId)
 			key = string.lower(luautils.trim(string.sub(line, 0, sep - 1)))
 			val = luautils.trim(string.sub(line, sep + 1))
 		end
-		-- split lists
-		if key == "authors" or key == "tags" then -- TODO: add pzversion for check?
+		
+		-- no read default keys: name, poster, description, require, id, pack, tiledef
+		-- reread url without restrictions
+		if key == "modversion" then
+			modInfoExtra.modversion = val
+		elseif key == "url" then
+			modInfoExtra.url = val
+		elseif key == "icon" then
+			modInfoExtra.icon = getTexture(modInfo:getDir() .. getFileSeparator() .. val)
+		elseif key == "pzversion" then
+			modInfoExtra.pzversion = #val > 0 and val or modInfoExtra.pzversion
+		elseif key == "tags" then
 			val = luautils.split(val, ",")
 			for i, j in ipairs(val) do
 				val[i] = luautils.trim(j)
 			end
+			modInfoExtra.tags = #val > 0 and val or modInfoExtra.tags
+		elseif key == "authors" then
+			val = luautils.split(val, ",")
+			for i, j in ipairs(val) do
+				val[i] = luautils.trim(j)
+			end
+			modInfoExtra.authors = #val > 0 and val or modInfoExtra.authors
 		end
 		
-		-- no read default keys: name, poster, description, require, id, pack, tiledef
-		-- reread url without restrictions
-		if key == "modversion" then modInfoExtra.modversion = val end
-		if key == "pzversion" then modInfoExtra.pzversion = val end
-		if key == "tags" then modInfoExtra.tags = val end
-		if key == "authors" then modInfoExtra.authors = val end
-		if key == "icon" then modInfoExtra.icon = getTexture(modInfo:getDir() .. getFileSeparator() .. val) end
-		if key == "url" then modInfoExtra.url = val end
 		line = file:readLine()
 	end
 	file:close()
@@ -517,221 +552,471 @@ function ModPanelFilter:new(x, y, width, height)
 end
 
 function ModPanelFilter:createChildren()
-	self.filterLabel = ISLabel:new(
-		DX, DY, BUTTON_HGT, getText("UI_NRK_ModSelector_Filter_FilterLabel"),
-		1, 1, 1, 1, UIFont.Small, true
-	)
-	self:addChild(self.filterLabel)
-	
-	self.allButton = ISButton:new(
-		self.width - (BUTTON_WDH + DX), DY, BUTTON_WDH, BUTTON_HGT,
-		getText("UI_NRK_ModSelector_Filter_AllButton", 999), self,
-		function ()
-			self.mapTickBox.selected[1] = true
-			self.mapTickBox.selected[2] = true
-			self.locationTickBox.selected[1] = true
-			self.locationTickBox.selected[2] = true
-			self.statusTickBox.selected[1] = true
-			self.statusTickBox.selected[2] = true
-			self.availabilityTickBox.selected[1] = true
-			self.availabilityTickBox.selected[2] = true
-		end
-	)
-	self.allButton.borderColor = {r=1, g=1, b=1, a=0.1}
-	self.allButton:setWidthToTitle(BUTTON_WDH)
-	self.allButton:setX(self.width - (DX + self.allButton.width))
-	self.allButton:setAnchorLeft(false)
-	self.allButton:setAnchorRight(true)
-	self:addChild(self.allButton)
-	
-	-- line 1
-	local y1 = self.allButton:getBottom()
-	
-	self.mapTickBox = ISTickBox:new(DX, y1, BUTTON_WDH, BUTTON_HGT*2)
-	self.mapTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithmapFlag", 999), 999)
-	self.mapTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", 999), 999)
-	self.mapTickBox:setWidthToFit()
-	self.mapTickBox.selected[1] = true
-	self.mapTickBox.selected[2] = true
-	self:addChild(self.mapTickBox)
-	
-	self.locationTickBox = ISTickBox:new(self.mapTickBox:getRight() + DX, y1, BUTTON_WDH, BUTTON_HGT*2)
-	self.locationTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_LocalFlag", 999), 999)
-	self.locationTickBox:addOption(getText("UI_NRK_ModSelector_Filter_WorkshopFlag", 999), 999)
-	self.locationTickBox:setWidthToFit()
-	self.locationTickBox.selected[1] = true
-	self.locationTickBox.selected[2] = true
-	self:addChild(self.locationTickBox)
-	
-	self.statusTickBox = ISTickBox:new(self.locationTickBox:getRight() + DX, y1, BUTTON_WDH, BUTTON_HGT*2)
-	self.statusTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_EnabledFlag", 999), 999)
-	self.statusTickBox:addOption(getText("UI_NRK_ModSelector_Filter_DisabledFlag", 999), 999)
-	self.statusTickBox:setWidthToFit()
-	self.statusTickBox.selected[1] = true
-	self.statusTickBox.selected[2] = true
-	self:addChild(self.statusTickBox)
-	
-	self.availabilityTickBox = ISTickBox:new(self.statusTickBox:getRight() + DX, y1, BUTTON_WDH, BUTTON_HGT*2)
-	self.availabilityTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_AvailableFlag", 999), 999)
-	self.availabilityTickBox:addOption(getText("UI_NRK_ModSelector_Filter_BrokenFlag", 999), 999)
-	self.availabilityTickBox:setWidthToFit()
-	self.availabilityTickBox.selected[1] = true
-	self.availabilityTickBox.selected[2] = true
-	self:addChild(self.availabilityTickBox)
-	
-	-- line 2
-	local y2 = self.availabilityTickBox:getBottom() + DY*3
-	
-	self.searchLabel = ISLabel:new(
-		DX, y2, BUTTON_HGT, getText("UI_NRK_ModSelector_Filter_SearchLabel"),
-		1, 1, 1, 1, UIFont.Small, true
-	)
-	self:addChild(self.searchLabel)
-	
-	self.searchEntryBox = ISTextEntryBox:new("",
-		self.searchLabel:getRight() + DX, y2 + 3,
-		BUTTON_WDH*2, FONT_HGT_SMALL + 4
-	)
-	self:addChild(self.searchEntryBox)
-	self.searchEntryBox:setClearButton(true)
-	
-	self.idTickBox = ISTickBox:new(self.searchEntryBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
-	self.idTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.idTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByID"), nil)
-	self.idTickBox:setWidthToFit()
-	self.idTickBox.selected[1] = false
-	self:addChild(self.idTickBox)
-	
-	self.nameTickBox = ISTickBox:new(self.idTickBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
-	self.nameTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.nameTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByName"), nil)
-	self.nameTickBox:setWidthToFit()
-	self.nameTickBox.selected[1] = true
-	self:addChild(self.nameTickBox)
-	
-	self.descTickBox = ISTickBox:new(self.nameTickBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
-	self.descTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.descTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByDesc"), nil)
-	self.descTickBox:setWidthToFit()
-	self.descTickBox.selected[1] = false
-	self:addChild(self.descTickBox)
-	
-	self.tagsTickBox = ISTickBox:new(self.descTickBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
-	self.tagsTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.tagsTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByTags"), nil)
-	self.tagsTickBox:setWidthToFit()
-	self.tagsTickBox.selected[1] = false
-	self:addChild(self.tagsTickBox)
-	
-	self.mapsTickBox = ISTickBox:new(self.tagsTickBox:getRight() + DX, y2 + 2, BUTTON_WDH, BUTTON_HGT)
-	self.mapsTickBox.choicesColor = {r=1, g=1, b=1, a=1}
-	self.mapsTickBox:addOption(getText("UI_NRK_ModSelector_Filter_ByMaps"), nil)
-	self.mapsTickBox:setWidthToFit()
-	self.mapsTickBox.selected[1] = false
-	self:addChild(self.mapsTickBox)
-end
-
-function ModPanelFilter:update(counts)
-	if type(counts) == "table" then
-		local all = self.parent.listBox.count
-		self.allButton:setTitle(getText("UI_NRK_ModSelector_Filter_AllButton", all))
+	self.filter = ISPanelCompact:new(DX, DY, self.width - 2*DX, BUTTON_HGT)
+	self:addChild(self.filter)
+	self.filter.createText = function(S)
+		local options, P = {}, S.parent
 		
-		self.mapTickBox.optionData[1] = counts.withmap
-		self.mapTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_WithmapFlag", counts.withmap)
-		self.mapTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_WithmapFlag", counts.withmap)
-		self.mapTickBox.optionData[2] = all - counts.withmap
-		self.mapTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", all - counts.withmap)
-		self.mapTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_WithoutmapFlag", all - counts.withmap)
+		if P.locationTickBox.selected[1] and not P.locationTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Workshop"))
+		elseif not P.locationTickBox.selected[1] and P.locationTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Local"))
+		end 
 		
-		self.locationTickBox.optionData[1] = all - counts.fromworkshop
-		self.locationTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_LocalFlag", all - counts.fromworkshop)
-		self.locationTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_LocalFlag", all - counts.fromworkshop)
-		self.locationTickBox.optionData[2] = counts.fromworkshop
-		self.locationTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_WorkshopFlag", counts.fromworkshop)
-		self.locationTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_WorkshopFlag", counts.fromworkshop)
+		if P.mapTickBox.selected[1] and not P.mapTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Withmap"))
+		elseif not P.mapTickBox.selected[1] and P.mapTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Withoutmap"))
+		end 
 		
-		self.statusTickBox.optionData[1] = counts.enabled
-		self.statusTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", counts.enabled)
-		self.statusTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", counts.enabled)
-		self.statusTickBox.optionData[2] = all - counts.enabled
-		self.statusTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", all - counts.enabled)
-		self.statusTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", all - counts.enabled)
+		if P.translateTickBox.selected[1] and not P.translateTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Withtranslate"))
+		elseif not P.translateTickBox.selected[1] and P.translateTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Withouttranslate"))
+		end 
 		
-		self.availabilityTickBox.optionData[1] = counts.available
-		self.availabilityTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_AvailableFlag", counts.available)
-		self.availabilityTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_AvailableFlag", counts.available)
-		self.availabilityTickBox.optionData[2] = all - counts.available
-		self.availabilityTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_BrokenFlag", all- counts.available)
-		self.availabilityTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_BrokenFlag", all - counts.available)
-	elseif type(counts) == "number" then
-		self.statusTickBox.optionData[1] = self.statusTickBox.optionData[1] + counts
-		self.statusTickBox.optionsIndex[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", self.statusTickBox.optionData[1])
-		self.statusTickBox.options[1] = getText("UI_NRK_ModSelector_Filter_EnabledFlag", self.statusTickBox.optionData[1])
-		self.statusTickBox.optionData[2] = self.statusTickBox.optionData[2] - counts
-		self.statusTickBox.optionsIndex[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", self.statusTickBox.optionData[2])
-		self.statusTickBox.options[2] = getText("UI_NRK_ModSelector_Filter_DisabledFlag", self.statusTickBox.optionData[2])
-	end
-end
-
-function ModPanelFilter:resize()
-	-- line 1
-	local w = {self.mapTickBox.width, self.locationTickBox.width, self.statusTickBox.width, self.availabilityTickBox.width}
-	if self.width >= math.max(w[1], w[2], w[3])*3 + w[4] + DX*5 then
-		local w = (self.width - DX*5 - w[4])/3
-		self.locationTickBox:setX(w + DX*2)
-		self.statusTickBox:setX(w*2 + DX*3)
-		self.availabilityTickBox:setX(w*3 + DX*4)
-	elseif self.width >= w[1] + w[2] + w[3] + w[4] + DX*5 then
-		self.locationTickBox:setX(w[1] + DX*2)
-		self.statusTickBox:setX(w[1] + w[2] + DX*3)
-		self.availabilityTickBox:setX(w[1] + w[2] + w[3] + DX*4)
-	else
-		self.locationTickBox:setX(w[1] + DX)
-		self.statusTickBox:setX(w[1] + w[2] + DX)
-		self.availabilityTickBox:setX(w[1] + w[2] + w[3] + DX)
-	end
-	
-	-- line 2
-	w = {self.searchLabel.width, BUTTON_WDH, self.idTickBox.width, self.nameTickBox.width, self.descTickBox.width, self.tagsTickBox.width, self.mapsTickBox.width}
-	if self.width >= w[1] + w[2] + w[3] + w[4] + w[5] + w[6] + w[7] + DX*8 then
-		self.searchEntryBox:setWidth(self.width - (w[1] + w[3] + w[4] + w[5] + w[6] + w[7] + DX*8))
-		self.idTickBox:setX(self.searchEntryBox:getRight() + DX)
-		self.nameTickBox:setX(self.idTickBox:getRight() + DX)
-		self.descTickBox:setX(self.nameTickBox:getRight() + DX)
-		self.tagsTickBox:setX(self.descTickBox:getRight() + DX)
-		self.mapsTickBox:setX(self.tagsTickBox:getRight() + DX)
-		local y = self.searchLabel.y + 2
-		self.idTickBox:setY(y)
-		self.nameTickBox:setY(y)
-		self.descTickBox:setY(y)
-		self.tagsTickBox:setY(y)
-		self.mapsTickBox:setY(y)
-	else
-		self.searchEntryBox:setWidth(self.width - (self.searchEntryBox.x + DX))
-		if self.width >= self.searchEntryBox.x + w[3] + w[4] + w[5] + w[6] + w[7] + DX*6 then
-			self.idTickBox:setX(self.searchEntryBox.x)
+		if P.availabilityTickBox.selected[1] and not P.availabilityTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Available"))
+		elseif not P.availabilityTickBox.selected[1] and P.availabilityTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Broken"))
+		end 
+		
+		if P.statusTickBox.selected[1] and not P.statusTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Enabled"))
+		elseif not P.statusTickBox.selected[1] and P.statusTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Disabled"))
+		end 
+		
+		if P.favorTickBox.selected[1] and not P.favorTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Favor"))
+		elseif not P.favorTickBox.selected[1] and P.favorTickBox.selected[2] then
+			table.insert(options, getText("UI_NRK_ModSelector_Filter_Nofavor"))
+		end 
+		
+		if #options == 0 then
+			S.text = getText("UI_NRK_ModSelector_Filter_Off")
 		else
-			self.idTickBox:setX(DX)
+			S.text = getText("UI_NRK_ModSelector_Filter_On", table.concat(options, ", "))
 		end
-		self.nameTickBox:setX(self.idTickBox:getRight() + DX)
-		self.descTickBox:setX(self.nameTickBox:getRight() + DX)
-		self.tagsTickBox:setX(self.descTickBox:getRight() + DX)
-		self.mapsTickBox:setX(self.tagsTickBox:getRight() + DX)
-		local y = self.searchEntryBox:getBottom()
-		self.idTickBox:setY(y)
-		self.nameTickBox:setY(y)
-		self.descTickBox:setY(y)
-		self.tagsTickBox:setY(y)
-		self.mapsTickBox:setY(y)
+	end
+	self.filter.popup.resize = function(S)
+		local P = S.parentPanel.parent
+		
+		-- update labels, counts and Width
+		local all = P.parent.listBox.count
+		local counters = P.parent.counters
+		
+		P.allButton:setTitle(string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_AllButton"), all))
+		
+		P.locationTickBox.options[1] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Workshop"), counters.workshop)
+		P.locationTickBox.optionsIndex[1] = P.locationTickBox.options[1]
+		P.locationTickBox.options[2] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Local"), all - counters.workshop)
+		P.locationTickBox.optionsIndex[2] = P.locationTickBox.options[2]
+		P.locationTickBox:setWidthToFit()
+		
+		P.mapTickBox.options[1] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Withmap"), counters.map)
+		P.mapTickBox.optionsIndex[1] = P.mapTickBox.options[1]
+		P.mapTickBox.options[2] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Withoutmap"), all - counters.map)
+		P.mapTickBox.optionsIndex[2] = P.mapTickBox.options[2]
+		P.mapTickBox:setWidthToFit()
+		
+		P.translateTickBox.options[1] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Withtranslate"), counters.translate)
+		P.translateTickBox.optionsIndex[1] = P.translateTickBox.options[1]
+		P.translateTickBox.options[2] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Withouttranslate"), all - counters.translate)
+		P.translateTickBox.optionsIndex[2] = P.translateTickBox.options[2]
+		P.translateTickBox:setWidthToFit()
+		
+		P.availabilityTickBox.options[1] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Available"), counters.available)
+		P.availabilityTickBox.optionsIndex[1] = P.availabilityTickBox.options[1]
+		P.availabilityTickBox.options[2] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Broken"), all - counters.available)
+		P.availabilityTickBox.optionsIndex[2] = P.availabilityTickBox.options[2]
+		P.availabilityTickBox:setWidthToFit()
+		
+		P.statusTickBox.options[1] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Enabled"), counters.enabled)
+		P.statusTickBox.optionsIndex[1] = P.statusTickBox.options[1]
+		P.statusTickBox.options[2] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Disabled"), all - counters.enabled)
+		P.statusTickBox.optionsIndex[2] = P.statusTickBox.options[2]
+		P.statusTickBox:setWidthToFit()
+		
+		P.favorTickBox.options[1] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Favor"), counters.favor)
+		P.favorTickBox.optionsIndex[1] = P.favorTickBox.options[1]
+		P.favorTickBox.options[2] = string.format("%s [%d]", getText("UI_NRK_ModSelector_Filter_Nofavor"), all - counters.favor)
+		P.favorTickBox.optionsIndex[2] = P.favorTickBox.options[2]
+		P.favorTickBox:setWidthToFit()
+		
+		-- update coordinates
+		P.allButton:setWidth(S.width - 2*DX)
+		
+		local w = {
+			P.locationTickBox.width,
+			P.mapTickBox.width,
+			P.translateTickBox.width,
+			P.availabilityTickBox.width,
+			P.statusTickBox.width,
+			P.favorTickBox.width,
+		}
+		local w32 = math.max(w[1], w[4]) + math.max(w[2], w[5]) + math.max(w[3], w[6])
+		local w23 = math.max(w[1], w[2], w[3]) + math.max(w[4], w[5], w[6])
+		
+		if w32 + 4*DX <= S.width then -- 3 columns, 2 rows
+			local x1 = (S.width - w32)/4
+			local x2 = x1 + math.max(w[1], w[4]) + x1
+			local x3 = x2 + math.max(w[2], w[5]) + x1
+			local y1 = P.allButton:getBottom() + DY
+			P.locationTickBox:setX(x1)
+			P.locationTickBox:setY(y1)
+			P.mapTickBox:setX(x2)
+			P.mapTickBox:setY(y1)
+			P.translateTickBox:setX(x3)
+			P.translateTickBox:setY(y1)
+			local y2 = P.translateTickBox:getBottom() + DY
+			P.availabilityTickBox:setX(x1)
+			P.availabilityTickBox:setY(y2)
+			P.statusTickBox:setX(x2)
+			P.statusTickBox:setY(y2)
+			P.favorTickBox:setX(x3)
+			P.favorTickBox:setY(y2)
+		elseif w23 + 3*DX <= S.width then -- 2 columns, 3 rows
+			local dx = (S.width - w23)/3
+			local x1 = (S.width - w23)/3
+			local x2 = x1 + math.max(w[1], w[2], w[3]) + x1
+			local y1 = P.allButton:getBottom() + DY
+			P.locationTickBox:setX(x1)
+			P.locationTickBox:setY(y1)
+			P.availabilityTickBox:setX(x2)
+			P.availabilityTickBox:setY(y1)
+			local y2 = P.availabilityTickBox:getBottom() + DY
+			P.mapTickBox:setX(x1)
+			P.mapTickBox:setY(y2)
+			P.statusTickBox:setX(x2)
+			P.statusTickBox:setY(y2)
+			local y3 = P.statusTickBox:getBottom() + DY
+			P.translateTickBox:setX(x1)
+			P.translateTickBox:setY(y3)
+			P.favorTickBox:setX(x2)
+			P.favorTickBox:setY(y3)
+		else -- 1 column, 6 rows
+			local dx = (S.width - math.max(w[1], w[2], w[3], w[4], w[5], w[6]))/2
+			P.locationTickBox:setX(dx)
+			P.locationTickBox:setY(P.allButton:getBottom() + DY)
+			P.mapTickBox:setX(dx)
+			P.mapTickBox:setY(P.locationTickBox:getBottom() + DY)
+			P.translateTickBox:setX(dx)
+			P.translateTickBox:setY(P.mapTickBox:getBottom() + DY)
+			P.availabilityTickBox:setX(dx)
+			P.availabilityTickBox:setY(P.translateTickBox:getBottom() + DY)
+			P.statusTickBox:setX(dx)
+			P.statusTickBox:setY(P.availabilityTickBox:getBottom() + DY)
+			P.favorTickBox:setX(dx)
+			P.favorTickBox:setY(P.statusTickBox:getBottom() + DY)
+		end
+		
+		S:setHeight(P.favorTickBox:getBottom() + DY)
 	end
 	
-	self:setHeight(math.max(self.searchEntryBox:getBottom(), self.nameTickBox:getBottom()) + DY)
-	self.parent.listBox:setY(self:getBottom() + DY)
-	self.parent.listBox:setHeight(self.parent.height - (self.parent.listBox.y + BUTTON_HGT + DY*2))
+	local allButton = ISButton:new(
+		DX, DY, 0, BUTTON_HGT, "", self,
+		function(target)
+			target.locationTickBox.selected = {true, true}
+			target.mapTickBox.selected = {true, true}
+			target.translateTickBox.selected = {true, true}
+			target.availabilityTickBox.selected = {true, true}
+			target.statusTickBox.selected = {true, true}
+			target.favorTickBox.selected = {true, true}
+			target.filter.text = getText("UI_NRK_ModSelector_Filter_Off")
+		end
+	)
+	allButton.borderColor = {r=1, g=1, b=1, a=0.1}
+	self.filter.popup:addChild(allButton)
+	self.allButton = allButton
+	
+	local locationTickBox = ISTickBox:new(
+		0, 0, 0, 0, nil, self.filter,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if not optionvalue then tickbox.selected[3 - optionindex] = true end
+			target:createText()
+		end
+	)
+	locationTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	locationTickBox:addOption("", "Workshop")
+	locationTickBox:addOption("", "Local")
+	locationTickBox.selected = {true, true}
+	self.filter.popup:addChild(locationTickBox)
+	self.locationTickBox = locationTickBox
+	
+	local mapTickBox = ISTickBox:new(
+		0, 0, 0, 0, nil, self.filter,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if not optionvalue then tickbox.selected[3 - optionindex] = true end
+			target:createText()
+		end
+	)
+	mapTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	mapTickBox:addOption("", "Withmap")
+	mapTickBox:addOption("", "Withoutmap")
+	mapTickBox.selected = {true, true}
+	self.filter.popup:addChild(mapTickBox)
+	self.mapTickBox = mapTickBox
+	
+	local translateTickBox = ISTickBox:new(
+		0, 0, 0, 0, nil, self.filter,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if not optionvalue then tickbox.selected[3 - optionindex] = true end
+			target:createText()
+		end
+	)
+	translateTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	translateTickBox:addOption("", "Withtranslate")
+	translateTickBox:addOption("", "Withouttranslate")
+	translateTickBox.selected = {true, true}
+	self.filter.popup:addChild(translateTickBox)
+	self.translateTickBox = translateTickBox
+	
+	local availabilityTickBox = ISTickBox:new(
+		0, 0, 0, 0, nil, self.filter,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if not optionvalue then tickbox.selected[3 - optionindex] = true end
+			target:createText()
+		end
+	)
+	availabilityTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	availabilityTickBox:addOption("", "Available")
+	availabilityTickBox:addOption("", "Broken")
+	availabilityTickBox.selected = {true, false}
+	self.filter.popup:addChild(availabilityTickBox)
+	self.availabilityTickBox = availabilityTickBox
+	
+	local statusTickBox = ISTickBox:new(
+		0, 0, 0, 0, nil, self.filter,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if not optionvalue then tickbox.selected[3 - optionindex] = true end
+			target:createText()
+		end
+	)
+	statusTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	statusTickBox:addOption("", "Enabled")
+	statusTickBox:addOption("", "Disabled")
+	statusTickBox.selected = {true, true}
+	self.filter.popup:addChild(statusTickBox)
+	self.statusTickBox = statusTickBox
+	
+	local favorTickBox = ISTickBox:new(
+		0, 0, 0, 0, nil, self.filter,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if not optionvalue then tickbox.selected[3 - optionindex] = true end
+			target:createText()
+		end
+	)
+	favorTickBox.choicesColor = {r=1, g=1, b=1, a=1}
+	favorTickBox:addOption("", "Favor")
+	favorTickBox:addOption("", "Nofavor")
+	favorTickBox.selected = {false, true}
+	self.filter.popup:addChild(favorTickBox)
+	self.favorTickBox = favorTickBox
+	
+	self.filter:createText()
+	
+	
+	self.search = ISPanelCompact:new(DX, self.filter:getBottom() + DY, self.width - 2*DX, BUTTON_HGT)
+	self:addChild(self.search)
+	self.search.recalcChildren = function(S)
+		local w = math.max(S.width - (10 + getTextManager():MeasureStringX(S.font, S.text) + 5 + 18), BUTTON_WDH)
+		S.parent.searchEntryBox:setX(S.width - (w + 18))
+		S.parent.searchEntryBox:setWidth(w)
+	end
+	self.search.createText = function(S)
+		local options, P = {}, S.parent
+		local operator1, operator2 = "", ""
+		
+		for i, name in ipairs(P.searchby1.options) do
+			if P.searchby1.selected[i] then table.insert(options, name) end
+		end
+		for i, name in ipairs(P.searchby2.options) do
+			if P.searchby2.selected[i] then table.insert(options, name) end
+		end
+		for i, name in ipairs(P.searchas1.options) do
+			if P.searchas1.selected[i] then
+				operator1 = getText("UI_NRK_ModSelector_Search_OR")
+				operator2 = name
+			end
+		end
+		for i, name in ipairs(P.searchas2.options) do
+			if P.searchas2.selected[i] then
+				operator1 = getText("UI_NRK_ModSelector_Search_AND")
+				operator2 = name
+			end
+		end
+		
+		S.text = getText("UI_NRK_ModSelector_Search_By", table.concat(options, operator1), operator2)
+		S:recalcChildren()
+	end
+	self.search.popup.resize = function(S)
+		local P = S.parentPanel.parent
+		
+		local w = {
+			P.searchby1.width,
+			P.searchby2.width,
+			P.searchas1.width,
+			P.searchas2.width,
+		}
+		local w12 = math.max(w[1], w[2])
+		local w34 = math.max(w[3], w[4])
+		
+		if w[1] + w[2] + w[3] + w[4] + 5*DX <= S.width then
+			local dx = (S.width - (w[1] + w[2] + w[3] + w[4] + 5*DX))/3
+			P.searchby1:setX(DX + dx)
+			P.searchby1:setY(DY)
+			P.searchby2:setX(P.searchby1:getRight() + DX)
+			P.searchby2:setY(DY)
+			P.searchas1:setX(P.searchby2:getRight() + DX + dx)
+			P.searchas1:setY(DY)
+			P.searchas2:setX(P.searchas1:getRight() + DX)
+			P.searchas2:setY(DY)
+		elseif w12 + w34 + 3*DX <= S.width then
+			local x1 = (S.width - (w12 + w34))/3
+			local x2 = x1 + w12 + x1
+			P.searchby1:setX(x1)
+			P.searchby1:setY(DY)
+			P.searchby2:setX(x1)
+			P.searchby2:setY(P.searchby1:getBottom() + DY)
+			P.searchas1:setX(x2)
+			P.searchas1:setY(DY)
+			P.searchas2:setX(x2)
+			P.searchas2:setY(P.searchas1:getBottom() + DY)
+		else
+			local x = (S.width - math.max(w12, w34))/2
+			P.searchby1:setX(x)
+			P.searchby1:setY(DY)
+			P.searchby2:setX(x)
+			P.searchby2:setY(P.searchby1:getBottom() + DY)
+			P.searchas1:setX(x)
+			P.searchas1:setY(P.searchby2:getBottom() + DY)
+			P.searchas2:setX(x)
+			P.searchas2:setY(P.searchas1:getBottom() + DY)
+		end
+		
+		S:setHeight(math.max(P.searchby2:getBottom(), P.searchas2:getBottom()) + DY)
+	end
+	
+	local searchby1 = ISTickBox:new(
+		0, 0, 0, 0, nil, self.search,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if optionvalue then
+				target.parent.searchby2.selected = {}
+				target.parent.searchEntryBox.options = {}
+			elseif not(tickbox.selected[1] or tickbox.selected[2] or tickbox.selected[3]) then
+				tickbox.selected[optionindex] = true
+			end
+			target:createText()
+		end
+	)
+	searchby1.choicesColor = {r=1, g=1, b=1, a=1}
+	searchby1:addOption(getText("UI_NRK_ModSelector_Search_Name"))
+	searchby1:addOption(getText("UI_NRK_ModSelector_Search_Desc"))
+	searchby1:addOption(getText("UI_NRK_ModSelector_Search_ModID"))
+	searchby1:setWidthToFit()
+	searchby1.selected = {true, true, true}
+	self.search.popup:addChild(searchby1)
+	self.searchby1 = searchby1
+	
+	local searchby2 = ISTickBox:new(
+		0, 0, 0, 0, nil, self.search,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if optionvalue then
+				target.parent.searchby1.selected = {}
+				tickbox.selected = {}
+				tickbox.selected[optionindex] = true
+				
+				target.parent.searchEntryBox.options = {}
+				if optionindex == 3 then
+					for i, j in pairs(target.parent.parent.counters.pzversions) do
+						target.parent.searchEntryBox:addOption(i, j)
+					end
+				elseif optionindex == 4 then
+					local tags = {}
+					for i, j in pairs(target.parent.parent.counters.originaltags) do
+						tags[i] = j
+					end
+					for i, j in pairs(target.parent.parent.counters.customtags) do
+						tags[i] = (tags[i] or 0) + j
+					end
+					for i, j in pairs(tags) do
+						target.parent.searchEntryBox:addOption(i, j)
+					end
+				elseif optionindex == 5 then
+					for i, j in pairs(target.parent.parent.counters.authors) do
+						target.parent.searchEntryBox:addOption(i, j)
+					end
+				end
+			else
+				tickbox.selected[optionindex] = true
+			end
+			target:createText()
+		end
+	)
+	searchby2.choicesColor = {r=1, g=1, b=1, a=1}
+	searchby2:addOption(getText("UI_NRK_ModSelector_Search_WorkshopID"))
+	searchby2:addOption(getText("UI_NRK_ModSelector_Search_MapID"))
+	searchby2:addOption(getText("UI_NRK_ModSelector_Search_PZVersion"))
+	searchby2:addOption(getText("UI_NRK_ModSelector_Search_Tags"))
+	searchby2:addOption(getText("UI_NRK_ModSelector_Search_Author"))
+	searchby2:setWidthToFit()
+	searchby2.selected = {}
+	self.search.popup:addChild(searchby2)
+	self.searchby2 = searchby2
+	
+	local searchas1 = ISTickBox:new(
+		0, 0, 0, 0, nil, self.search,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if optionvalue then
+				target.parent.searchEntryBox:setVisible(not(optionindex == 3))
+				target.parent.searchas2.selected = {}
+				tickbox.selected = {}
+				tickbox.selected[optionindex] = true
+			else
+				tickbox.selected[optionindex] = true
+			end
+			target:createText()
+		end
+	)
+	searchas1.choicesColor = {r=1, g=1, b=1, a=1}
+	searchas1:addOption(getText("UI_NRK_ModSelector_Search_Equal"))
+	searchas1:addOption(getText("UI_NRK_ModSelector_Search_Contain"))
+	searchas1:addOption(getText("UI_NRK_ModSelector_Search_Empty"))
+	searchas1:setWidthToFit()
+	searchas1.selected = {false, true, false}
+	self.search.popup:addChild(searchas1)
+	self.searchas1 = searchas1
+	
+	local searchas2 = ISTickBox:new(
+		0, 0, 0, 0, nil, self.search,
+		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
+			if optionvalue then
+				target.parent.searchEntryBox:setVisible(not(optionindex == 3))
+				target.parent.searchas1.selected = {}
+				tickbox.selected = {}
+				tickbox.selected[optionindex] = true
+			else
+				tickbox.selected[optionindex] = true
+			end
+			target:createText()
+		end
+	)
+	searchas2.choicesColor = {r=1, g=1, b=1, a=1}
+	searchas2:addOption(getText("UI_NRK_ModSelector_Search_noEqual"))
+	searchas2:addOption(getText("UI_NRK_ModSelector_Search_noContain"))
+	searchas2:addOption(getText("UI_NRK_ModSelector_Search_noEmpty"))
+	searchas2:setWidthToFit()
+	searchas2.selected = {}
+	self.search.popup:addChild(searchas2)
+	self.searchas2 = searchas2
+	
+	local searchEntryBox = ISTextEntryList:new("", 0, 3, 0, self.search.height - 6)
+	self.search:addChild(searchEntryBox)
+	self.searchEntryBox = searchEntryBox
+	searchEntryBox:setClearButton(true)
+	
+	self.search:createText()
 end
 
 
@@ -774,55 +1059,86 @@ function ModListBox:checkFilter(item)
 	local filter = self.parent.filterPanel
 	
 	-- tickbox filter
-	if not filter.locationTickBox.selected[1] and not item.modInfo:getWorkshopID() then return false end
-	if not filter.locationTickBox.selected[2] and item.modInfo:getWorkshopID() then return false end
+	if not filter.locationTickBox.selected[1] and item.modInfo:getWorkshopID() then return false end
+	if not filter.locationTickBox.selected[2] and not item.modInfo:getWorkshopID() then return false end
 	if not filter.mapTickBox.selected[1] and item.modInfoExtra.maps then return false end
 	if not filter.mapTickBox.selected[2] and not item.modInfoExtra.maps then return false end
-	if not filter.statusTickBox.selected[1] and item.isActive then return false end
-	if not filter.statusTickBox.selected[2] and not item.isActive then return false end
+	if not filter.translateTickBox.selected[1] and item.modInfoExtra.translate then return false end
+	if not filter.translateTickBox.selected[2] and not item.modInfoExtra.translate then return false end
 	if not filter.availabilityTickBox.selected[1] and item.isAvailable then return false end
 	if not filter.availabilityTickBox.selected[2] and not item.isAvailable then return false end
+	if not filter.statusTickBox.selected[1] and item.isActive then return false end
+	if not filter.statusTickBox.selected[2] and not item.isActive then return false end
+	if not filter.favorTickBox.selected[1] and item.isFavor then return false end
+	if not filter.favorTickBox.selected[2] and not item.isFavor then return false end
 	
 	-- search filter
-	local keyWord = filter.searchEntryBox:getText()
-	if keyWord ~= nil and keyWord ~= "" then
-		local tableForFind = {}
-		
-		if filter.idTickBox.selected[1] then
-			table.insert(tableForFind, item.modInfo:getId())
+	local keyWord = filter.searchEntryBox:getText() or ""
+	
+	local tableForFind = {}
+	if filter.searchby2.selected[1] then
+		table.insert(tableForFind, item.modInfo:getWorkshopID())
+	elseif filter.searchby2.selected[2] then
+		for _, map in ipairs(item.modInfoExtra.maps or {}) do
+			table.insert(tableForFind, map)
 		end
-		if filter.nameTickBox.selected[1] then
+	elseif filter.searchby2.selected[3] then
+		table.insert(tableForFind, item.modInfoExtra.pzversion)
+	elseif filter.searchby2.selected[4] then
+		for _, t in ipairs(item.modInfoExtra.tags or {}) do
+			table.insert(tableForFind, t)
+		end
+		for _, t in ipairs(self.parent.customtags[item.modInfo:getId()] or {}) do
+			table.insert(tableForFind, t)
+		end
+	elseif filter.searchby2.selected[5] then
+		for _, author in ipairs(item.modInfoExtra.authors or {}) do
+			table.insert(tableForFind, author)
+		end
+	else
+		if filter.searchby1.selected[1] then
 			table.insert(tableForFind, item.modInfo:getName())
 		end
-		if filter.descTickBox.selected[1] then
-			table.insert(tableForFind, item.modInfo:getDescription() or "")
-			table.insert(tableForFind, item.modInfoExtra.description or "")
+		if filter.searchby1.selected[2] then
+			table.insert(tableForFind, item.modInfo:getDescription())
+			table.insert(tableForFind, item.modInfoExtra.description)
 		end
-		if filter.tagsTickBox.selected[1] then
-			for _, t in ipairs(item.modInfoExtra.tags or {}) do
-				table.insert(tableForFind, t)
-			end
-			for _, t in ipairs(self.parent.customtags[item.modInfo:getId()] or {}) do
-				table.insert(tableForFind, t)
-			end
+		if filter.searchby1.selected[3] then
+			table.insert(tableForFind, item.modInfo:getId())
 		end
-		if filter.mapsTickBox.selected[1] then
-			for _, map in ipairs(item.modInfoExtra.maps or {}) do
-				table.insert(tableForFind, map or "")
-			end
-		end
-		
-		for _, s in ipairs(tableForFind) do
-			-- TODO: for each condition, without tableForFind?
-			if string.find(string.lower(s), string.lower(keyWord)) ~= nil then
-				return true
-			end
-		end
-		
-		return false
 	end
 	
-	return true
+	if filter.searchas1.selected[1] then -- Equal
+		if keyWord == "" then return true end
+		for _, s in ipairs(tableForFind) do
+			if s == keyWord then return true end
+		end
+	elseif filter.searchas1.selected[2] then -- Contain
+		if keyWord == "" then return true end
+		for _, s in ipairs(tableForFind) do
+			if string.find(string.lower(s), string.lower(keyWord), 1, true) ~= nil then return true end
+		end
+	elseif filter.searchas1.selected[3] then -- Empty
+		if #tableForFind == 0 then return true end
+	elseif filter.searchas2.selected[1] then -- noEqual
+		if keyWord == "" then return true end
+		local noequal = true
+		for _, s in ipairs(tableForFind) do 
+			if s == keyWord then noequal = false end
+		end
+		return noequal
+	elseif filter.searchas2.selected[2] then -- noContain
+		if keyWord == "" then return true end
+		local nocontain = true
+		for _, s in ipairs(tableForFind) do
+			if string.find(string.lower(s), string.lower(keyWord), 1, true) ~= nil then nocontain = false end
+		end
+		return nocontain
+	elseif filter.searchas2.selected[3] then -- noEmpty
+		if #tableForFind > 0 then return true end
+	end
+	
+	return false
 end
 
 function ModListBox:doDrawButton(text, internal, x, y, w, h)
@@ -955,11 +1271,12 @@ function ModListBox:doActive(item, doFavor)
 	
 	if item.isActive == false then
 		item.isActive = true
-		self.parent.filterPanel:update(1)
+		self.parent.counters.enabled = self.parent.counters.enabled + 1
 	end
 	
 	if doFavor then
 		item.isFavor = true
+		self.parent.counters.favor = self.parent.counters.favor + 1
 	end
 	
 	local requires = item.modInfo:getRequire()
@@ -977,9 +1294,10 @@ function ModListBox:doInactive(item)
 	local modId = item.modInfo:getId()
 	print(NRKLOG, "do Inactive", modId)
 	
+	self.parent.counters.enabled = self.parent.counters.enabled - 1
+	if item.isFavor then self.parent.counters.favor = self.parent.counters.favor - 1 end
 	item.isActive = false
 	item.isFavor = false
-	self.parent.filterPanel:update(-1)
 	
 	for _, dependentId in ipairs(item.dependents or {}) do
 		self:doInactive(self.items[self.indexById[dependentId]].item)
@@ -1411,7 +1729,11 @@ function ModPanelInfo:onGoButton(button)
 			openUrl(self.urlEntry.title)
 		end
 	elseif button.internal == "WORKSHOP" then
-		activateSteamOverlayToWorkshopItem(self.workshopEntry.title)
+		if isSteamOverlayEnabled() then
+			activateSteamOverlayToWorkshopItem(self.workshopEntry.title)
+		else
+			openUrl(string.format("https://steamcommunity.com/sharedfiles/filedetails/?id=%s", self.workshopEntry.title))
+		end
 	elseif button.internal == "LOCATION" then
 		showFolderInDesktop(self.locationEntry.title)
 	end
@@ -1481,7 +1803,7 @@ function ModPanelInfo:onCustomTagsDialog()
 			current_tags_a[tag] = true
 		end
 		local all_tags = {}
-		for tag, _ in pairs(self.parent.customtagsall) do
+		for tag, _ in pairs(self.parent.counters.customtags) do
 			if not current_tags_a[tag] then
 				table.insert(all_tags, tag)
 			end
@@ -1493,7 +1815,7 @@ function ModPanelInfo:onCustomTagsDialog()
 		else
 			entry.parent.addComboBox:clear()
 			for _, tag in ipairs(all_tags) do
-				local count = self.parent.customtagsall[tag]
+				local count = self.parent.counters.customtags[tag]
 				entry.parent.addComboBox:addOptionWithData(tag .. " [" .. tostring(count) .. "]", tag)
 			end
 			entry.parent.addComboBox.disabled = false
@@ -1531,16 +1853,12 @@ function ModPanelInfo:onCustomTagsConfirm(button)
 		-- update tags and counts
 		for tag, _ in pairs(old_tags) do
 			if not new_tags[tag] then
-				self.parent.customtagsall[tag] = self.parent.customtagsall[tag] - 1
+				self.parent.counters.customtags[tag] = self.parent.counters.customtags[tag] - 1
 			end
 		end
 		self.parent.customtags[modId] = {}
 		for tag, _ in pairs(new_tags) do
-			if not self.parent.customtagsall[tag] then
-				self.parent.customtagsall[tag] = 1
-			elseif not old_tags[tag] then
-				self.parent.customtagsall[tag] = self.parent.customtagsall[tag] + 1
-			end
+			self.parent.counters.customtags[tag] = (self.parent.counters.customtags[tag] or 0) + 1
 			table.insert(self.parent.customtags[modId], tag)
 		end
 		table.sort(self.parent.customtags[modId])
@@ -1556,6 +1874,21 @@ function ModPanelInfo:onCustomTagsConfirm(button)
 		
 		-- for force update info-panel
 		self.selected = self.selected + 1
+		
+		-- update dropdown list for searchstring
+		if self.parent.filterPanel.searchby2.selected[4] then
+			self.parent.filterPanel.searchEntryBox.options = {}
+			local tags = {}
+			for i, j in pairs(self.parent.counters.originaltags) do
+				tags[i] = j
+			end
+			for i, j in pairs(self.parent.counters.customtags) do
+				tags[i] = (tags[i] or 0) + j
+			end
+			for i, j in pairs(tags) do
+				self.parent.filterPanel.searchEntryBox:addOption(i, j)
+			end
+		end
 	end
 end
 
@@ -1850,21 +2183,17 @@ function ModPanelSave:onSelected()
 		end
 	end
 	
-	local counts = {
-		withmap = self.parent.filterPanel.mapTickBox.optionData[1],
-		fromworkshop = self.parent.filterPanel.locationTickBox.optionData[2],
-		enabled = 0,
-		available = self.parent.filterPanel.availabilityTickBox.optionData[1],
-	}
+	self.parent.counters.enabled = self.parent.counters.favor
 	for _, item in ipairs(self.parent.listBox.items) do
-		if activeMods[item.item.modInfo:getId()] or item.item.isFavor then
+		if item.item.isFavor then
+			-- do nothing
+		elseif activeMods[item.item.modInfo:getId()] then
 			item.item.isActive = true
-			counts.enabled = counts.enabled + 1
+			self.parent.counters.enabled = self.parent.counters.enabled + 1
 		else
 			item.item.isActive = false
 		end
 	end
-	self.parent.filterPanel:update(counts)
 end
 
 function ModPanelSave:onValidateSaveName(text)

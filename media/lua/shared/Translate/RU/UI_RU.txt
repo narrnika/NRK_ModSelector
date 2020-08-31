@@ -1,21 +1,37 @@
 UI_RU = {
-	UI_NRK_ModSelector_Filter_FilterLabel = "Отображать моды:",
-	UI_NRK_ModSelector_Filter_WithmapFlag = "с картами (%1)",
-	UI_NRK_ModSelector_Filter_WithoutmapFlag = "без карт (%1)",
-	UI_NRK_ModSelector_Filter_LocalFlag = "локальные (%1)",
-	UI_NRK_ModSelector_Filter_WorkshopFlag = "из мастерской (%1)",
-	UI_NRK_ModSelector_Filter_EnabledFlag = "включенные (%1)",
-	UI_NRK_ModSelector_Filter_DisabledFlag = "выключенные (%1)",
-	UI_NRK_ModSelector_Filter_AvailableFlag = "доступные (%1)",
-	UI_NRK_ModSelector_Filter_BrokenFlag = "не доступные (%1)",
-	UI_NRK_ModSelector_Filter_AllButton = "Отображать все моды (%1)",
+	UI_NRK_ModSelector_Filter_Off = "Фильтр: отключён",
+	UI_NRK_ModSelector_Filter_On = "Фильтр: %1",
+	UI_NRK_ModSelector_Filter_AllButton = "Отображать все моды",
+	UI_NRK_ModSelector_Filter_Workshop = "из мастерской",
+	UI_NRK_ModSelector_Filter_Local = "локальные",
+	UI_NRK_ModSelector_Filter_Withmap = "с картами",
+	UI_NRK_ModSelector_Filter_Withoutmap = "без карт",
+	UI_NRK_ModSelector_Filter_Withtranslate = "с переводами",
+	UI_NRK_ModSelector_Filter_Withouttranslate = "без переводов",
+	UI_NRK_ModSelector_Filter_Available = "доступные",
+	UI_NRK_ModSelector_Filter_Broken = "сломанные",
+	UI_NRK_ModSelector_Filter_Enabled = "включенные",
+	UI_NRK_ModSelector_Filter_Disabled = "выключенные",
+	UI_NRK_ModSelector_Filter_Favor = "избранные",
+	UI_NRK_ModSelector_Filter_Nofavor = "обычные",
 	
-	UI_NRK_ModSelector_Filter_SearchLabel = "Искать:",
-	UI_NRK_ModSelector_Filter_ByID = "по ID,",
-	UI_NRK_ModSelector_Filter_ByName = "по имени,",
-	UI_NRK_ModSelector_Filter_ByDesc = "по описанию,",
-	UI_NRK_ModSelector_Filter_ByTags = "по тегам,",
-	UI_NRK_ModSelector_Filter_ByMaps = "по картам",
+	UI_NRK_ModSelector_Search_By = "Поиск: «%1» %2",
+	UI_NRK_ModSelector_Search_OR = "» или «",
+	UI_NRK_ModSelector_Search_AND = "» и «",
+	UI_NRK_ModSelector_Search_Name = "название",
+	UI_NRK_ModSelector_Search_Desc = "описание",
+	UI_NRK_ModSelector_Search_ModID = "ID мода",
+	UI_NRK_ModSelector_Search_WorkshopID = "ID в мастерской Steam",
+	UI_NRK_ModSelector_Search_MapID = "карта",
+	UI_NRK_ModSelector_Search_PZVersion = "версия PZ",
+	UI_NRK_ModSelector_Search_Tags = "тэг",
+	UI_NRK_ModSelector_Search_Author = "автор",
+	UI_NRK_ModSelector_Search_Equal = "равно",
+	UI_NRK_ModSelector_Search_Contain = "содержит",
+	UI_NRK_ModSelector_Search_Empty = "пусто",
+	UI_NRK_ModSelector_Search_noEqual = "не равно",
+	UI_NRK_ModSelector_Search_noContain = "не содержит",
+	UI_NRK_ModSelector_Search_noEmpty = "не пусто",
 	
 	
 	UI_NRK_ModSelector_List_Favorite = "В избранное",
@@ -29,7 +45,7 @@ UI_RU = {
 	UI_NRK_ModSelector_Status_EnabledBy = " (требуется для %1)",
 	
 	
-	UI_NRK_ModSelector_NoPoster = "Изображения отстутствуют",
+	UI_NRK_ModSelector_NoPoster = "Изображения отсутствуют",
 	
 	
 	UI_NRK_ModSelector_Info_ExtraInfo = "Дополнительная информация"
@@ -46,9 +62,9 @@ UI_RU = {
 	UI_NRK_ModSelector_Info_Author = "Автор:",
 	
 	UI_NRK_ModSelector_Info_WorkshopLable = "ID в мастерской Steam:",
-	UI_NRK_ModSelector_Info_WorkshopTooltip = "Открыть оверлей Steam для этого мода",
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "Открыть Steam-страницу этого мода", /*"Открыть оверлей Steam для этого мода",*/
 	UI_NRK_ModSelector_Info_URLLabel = "Ссылка на сайт:",
-	UI_NRK_ModSelector_Info_URLTooltip = "Кликните для перехода к ссылке мода в вашем браузере",
+	UI_NRK_ModSelector_Info_URLTooltip = "Открыть URL", /*"Кликните для перехода к ссылке мода в вашем браузере",*/
 	UI_NRK_ModSelector_Info_URLWarning = "(этот адрес не является официальным хранилищем модов PZ - вы переходите на него на свой страх и риск)",
 	UI_NRK_ModSelector_Info_LocationLabel = "Расположение на диске:",
 	UI_NRK_ModSelector_Info_LocationTooltip = "Открыть расположение файла",
