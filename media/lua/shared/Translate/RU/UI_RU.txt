@@ -38,7 +38,7 @@ UI_RU = {
 	UI_NRK_ModSelector_List_Unfavorite = "Убрать из избранного",
 	UI_NRK_ModSelector_List_On = "Включить",
 	UI_NRK_ModSelector_List_Off = "Выключить",
-	UI_NRK_ModSelector_List_Warning_OldMod = "Похоже, мод «%1» слишком старый.<br>Версия PZ, указанная автором: %2<br>Всё равно включить?",
+	UI_NRK_ModSelector_List_Warning_OldMod = "Похоже, мод «%1» слишком старый.<br>Всё равно включить?",
 	
 	UI_NRK_ModSelector_Status_Broken = " (сломано)",
 	UI_NRK_ModSelector_Status_Enabled = " (включено)",
@@ -52,14 +52,10 @@ UI_RU = {
 	UI_NRK_ModSelector_Info_ModId = "ID мода:",
 	UI_NRK_ModSelector_Info_ModVersion = "Версия мода:",
 	UI_NRK_ModSelector_Info_PZVersion = "Для версий PZ:",
-	UI_NRK_ModSelector_Info_Requires = "ID требуемых модов:",
-	UI_NRK_ModSelector_Info_Require = "ID требуемого мода:",
+	UI_NRK_ModSelector_Info_Require = "ID требуемых модов:",
 	UI_NRK_ModSelector_Info_Tags = "Тэги:",
-	UI_NRK_ModSelector_Info_Tag = "Тэг:",
 	UI_NRK_ModSelector_Info_Maps = "Карты:",
-	UI_NRK_ModSelector_Info_Map = "Карта:",
 	UI_NRK_ModSelector_Info_Authors = "Авторы:",
-	UI_NRK_ModSelector_Info_Author = "Автор:",
 	
 	UI_NRK_ModSelector_Info_WorkshopLable = "ID в мастерской Steam:",
 	UI_NRK_ModSelector_Info_WorkshopTooltip = "Открыть Steam-страницу этого мода", /*"Открыть оверлей Steam для этого мода",*/

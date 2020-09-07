@@ -176,6 +176,7 @@ function ISTextEntryListPopup:onMouseUp(x, y)
 	end
 	
 	self.parentTextEntry:setText(self.items[row].item)
+	self.parentTextEntry:onTextChange()
 	self.parentTextEntry.expanded = false
 	self.parentTextEntry:hidePopup()
 end

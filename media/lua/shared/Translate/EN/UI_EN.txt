@@ -38,7 +38,7 @@ UI_EN = {
 	UI_NRK_ModSelector_List_Unfavorite = "Remove from favorites",
 	UI_NRK_ModSelector_List_On = "On",
 	UI_NRK_ModSelector_List_Off = "Off",
-	UI_NRK_ModSelector_List_Warning_OldMod = "Mod «%1» looks too old.<br>Version of PZ, declared by author: %2<br>Enable anyway?",
+	UI_NRK_ModSelector_List_Warning_OldMod = "Mod «%1» looks too old.<br>Enable anyway?",
 	
 	UI_NRK_ModSelector_Status_Broken = " (broken)",
 	UI_NRK_ModSelector_Status_Enabled = " (enabled)",
@@ -52,14 +52,10 @@ UI_EN = {
 	UI_NRK_ModSelector_Info_ModId = "ID:",
 	UI_NRK_ModSelector_Info_ModVersion = "Version:",
 	UI_NRK_ModSelector_Info_PZVersion = "For PZ version:",
-	UI_NRK_ModSelector_Info_Requires = "ID require mods:",
 	UI_NRK_ModSelector_Info_Require = "ID require mod:",
 	UI_NRK_ModSelector_Info_Tags = "Tags:",
-	UI_NRK_ModSelector_Info_Tag = "Tag:",
 	UI_NRK_ModSelector_Info_Maps = "Maps:",
-	UI_NRK_ModSelector_Info_Map = "Map:",
 	UI_NRK_ModSelector_Info_Authors = "Authors:",
-	UI_NRK_ModSelector_Info_Author = "Author:",
 	
 	UI_NRK_ModSelector_Info_WorkshopLable = "Workshop ID:",
 	UI_NRK_ModSelector_Info_WorkshopTooltip = "Open Steam-page for this mod",

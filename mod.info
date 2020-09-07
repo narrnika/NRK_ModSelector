@@ -17,7 +17,7 @@ description= <LANG:JP> このmodは、「MODを選択」メニューをより機
 description= <LANG:KO> 이 모드는「모드 선택」메뉴를보다 기능적인 메뉴로 대체합니다. <LINE> 
 description= <LANG:TH> ม็อด นี้จะแทนที่เมนู 「เลือกม็อด」 ด้วยฟังก์ชันที่ใช้งานได้มากกว่า. <LINE> 
 
-modversion=10
+modversion=11
 pzversion=41
 tags=MainMenu,Interface
 authors=Narrnika

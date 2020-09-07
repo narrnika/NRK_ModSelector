@@ -13,7 +13,7 @@ require "ISUI/ISPanelCompact"
 require "ISUI/ISTextEntryList"
 require "luautils"
 
-local NRKModDB = require "NRK_ModDB" or {}
+local NRKMODDB = require "NRK_ModDB" or {}
 local NRKLOG = "NRK_ModSelector"
 
 local FONT_HGT_TITLE = getTextManager():getFontHeight(UIFont.Title)
@@ -127,6 +127,7 @@ function ModSelector:create() -- call from MainScreen.lua
 end
 
 function ModSelector:onDone()
+	self.listBox.keyboardfocus = false
 	self:setVisible(false)
 	
 	if self.loadGameFolder then
@@ -379,9 +380,7 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 		item.isFavor = favorList[modId] or false
 		if item.isFavor then self.counters.favor = self.counters.favor + 1 end
 		
-		
-		local pzversion = item.modInfoExtra.pzversion
-		if pzversion then
+		for _, pzversion in ipairs(item.modInfoExtra.pzversions or {}) do
 			self.counters.pzversions[pzversion] = (self.counters.pzversions[pzversion] or 0) + 1
 		end
 		for _, author in ipairs(item.modInfoExtra.authors or {}) do
@@ -415,6 +414,9 @@ function ModSelector:populateListBox(directories) -- call from MainScreen.lua, N
 		line = file:readLine()
 	end
 	file:close()
+	
+	self.listBox:updateFilter()
+	self.listBox.keyboardfocus = true
 end
 
 function ModSelector:checkRequire(modId)
@@ -448,7 +450,13 @@ end
 
 function ModSelector:readInfoExtra(modId)
 	local modInfo = getModInfoByID(modId)
-	local modInfoExtra = NRKModDB[modId] or {}
+	local modInfoExtra = nil
+	local workshopID = modInfo:getWorkshopID()
+	if workshopID and NRKMODDB[workshopID] then
+		modInfoExtra = NRKMODDB[workshopID][modId] or {}
+	else
+		modInfoExtra = {}
+	end
 	
 	-- mod with maps?
 	local mapList = getMapFoldersForMod(modId)
@@ -497,7 +505,11 @@ function ModSelector:readInfoExtra(modId)
 		elseif key == "icon" then
 			modInfoExtra.icon = getTexture(modInfo:getDir() .. getFileSeparator() .. val)
 		elseif key == "pzversion" then
-			modInfoExtra.pzversion = #val > 0 and val or modInfoExtra.pzversion
+			val = luautils.split(val, ",")
+			for i, j in ipairs(val) do
+				val[i] = luautils.trim(j)
+			end
+			modInfoExtra.pzversions = #val > 0 and val or modInfoExtra.pzversions
 		elseif key == "tags" then
 			val = luautils.split(val, ",")
 			for i, j in ipairs(val) do
@@ -561,37 +573,37 @@ function ModPanelFilter:createChildren()
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Workshop"))
 		elseif not P.locationTickBox.selected[1] and P.locationTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Local"))
-		end 
+		end
 		
 		if P.mapTickBox.selected[1] and not P.mapTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Withmap"))
 		elseif not P.mapTickBox.selected[1] and P.mapTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Withoutmap"))
-		end 
+		end
 		
 		if P.translateTickBox.selected[1] and not P.translateTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Withtranslate"))
 		elseif not P.translateTickBox.selected[1] and P.translateTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Withouttranslate"))
-		end 
+		end
 		
 		if P.availabilityTickBox.selected[1] and not P.availabilityTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Available"))
 		elseif not P.availabilityTickBox.selected[1] and P.availabilityTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Broken"))
-		end 
+		end
 		
 		if P.statusTickBox.selected[1] and not P.statusTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Enabled"))
 		elseif not P.statusTickBox.selected[1] and P.statusTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Disabled"))
-		end 
+		end
 		
 		if P.favorTickBox.selected[1] and not P.favorTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Favor"))
 		elseif not P.favorTickBox.selected[1] and P.favorTickBox.selected[2] then
 			table.insert(options, getText("UI_NRK_ModSelector_Filter_Nofavor"))
-		end 
+		end
 		
 		if #options == 0 then
 			S.text = getText("UI_NRK_ModSelector_Filter_Off")
@@ -724,6 +736,7 @@ function ModPanelFilter:createChildren()
 			target.statusTickBox.selected = {true, true}
 			target.favorTickBox.selected = {true, true}
 			target.filter.text = getText("UI_NRK_ModSelector_Filter_Off")
+			target.parent.listBox:updateFilter()
 		end
 	)
 	allButton.borderColor = {r=1, g=1, b=1, a=0.1}
@@ -735,6 +748,7 @@ function ModPanelFilter:createChildren()
 		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
 			if not optionvalue then tickbox.selected[3 - optionindex] = true end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	locationTickBox.choicesColor = {r=1, g=1, b=1, a=1}
@@ -749,6 +763,7 @@ function ModPanelFilter:createChildren()
 		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
 			if not optionvalue then tickbox.selected[3 - optionindex] = true end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	mapTickBox.choicesColor = {r=1, g=1, b=1, a=1}
@@ -763,6 +778,7 @@ function ModPanelFilter:createChildren()
 		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
 			if not optionvalue then tickbox.selected[3 - optionindex] = true end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	translateTickBox.choicesColor = {r=1, g=1, b=1, a=1}
@@ -777,6 +793,7 @@ function ModPanelFilter:createChildren()
 		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
 			if not optionvalue then tickbox.selected[3 - optionindex] = true end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	availabilityTickBox.choicesColor = {r=1, g=1, b=1, a=1}
@@ -791,6 +808,7 @@ function ModPanelFilter:createChildren()
 		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
 			if not optionvalue then tickbox.selected[3 - optionindex] = true end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	statusTickBox.choicesColor = {r=1, g=1, b=1, a=1}
@@ -805,6 +823,7 @@ function ModPanelFilter:createChildren()
 		function(target, optionindex, optionvalue, arg1, arg2, tickbox)
 			if not optionvalue then tickbox.selected[3 - optionindex] = true end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	favorTickBox.choicesColor = {r=1, g=1, b=1, a=1}
@@ -908,6 +927,7 @@ function ModPanelFilter:createChildren()
 				tickbox.selected[optionindex] = true
 			end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	searchby1.choicesColor = {r=1, g=1, b=1, a=1}
@@ -952,6 +972,7 @@ function ModPanelFilter:createChildren()
 				tickbox.selected[optionindex] = true
 			end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	searchby2.choicesColor = {r=1, g=1, b=1, a=1}
@@ -977,6 +998,7 @@ function ModPanelFilter:createChildren()
 				tickbox.selected[optionindex] = true
 			end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	searchas1.choicesColor = {r=1, g=1, b=1, a=1}
@@ -1000,6 +1022,7 @@ function ModPanelFilter:createChildren()
 				tickbox.selected[optionindex] = true
 			end
 			target:createText()
+			target.parent.parent.listBox:updateFilter()
 		end
 	)
 	searchas2.choicesColor = {r=1, g=1, b=1, a=1}
@@ -1015,6 +1038,10 @@ function ModPanelFilter:createChildren()
 	self.search:addChild(searchEntryBox)
 	self.searchEntryBox = searchEntryBox
 	searchEntryBox:setClearButton(true)
+	searchEntryBox.onTextChange = function(S)
+		-- TODO: suppressing bad character input (string.byte(S:getInternalText(), x) == 0)
+		S.parent.parent.parent.listBox:updateFilter()
+	end
 	
 	self.search:createText()
 end
@@ -1027,8 +1054,10 @@ function ModListBox:new(x, y, width, height)
 	setmetatable(o, self)
 	self.__index = self
 	o.drawBorder = true
-	o.indexById = {}
+	o.indexById = {} -- {modId = index, modId = index, ...}
+	o.visibleItems = {} -- {itemindex1, itemindex5, itemindex10, ...}
 	o.itemheight = math.max(FONT_HGT_MEDIUM + DY*2, BUTTON_HGT)
+	o.keyboardfocus = false
 	
 	o.btn = {}
 	o.btn.text1 = getText("UI_NRK_ModSelector_List_Favorite")
@@ -1051,20 +1080,23 @@ function ModListBox:new(x, y, width, height)
 	o.item.item.isActive = true/false
 	o.item.item.isFavor = true/false
 	o.item.item.dependents = {}
+	o.item.item.visible = nil or number
 	]]
 	return o
 end
 
 function ModListBox:checkFilter(item)
 	local filter = self.parent.filterPanel
+	local modInfo = item.modInfo
+	local modInfoExtra = item.modInfoExtra
 	
 	-- tickbox filter
-	if not filter.locationTickBox.selected[1] and item.modInfo:getWorkshopID() then return false end
-	if not filter.locationTickBox.selected[2] and not item.modInfo:getWorkshopID() then return false end
-	if not filter.mapTickBox.selected[1] and item.modInfoExtra.maps then return false end
-	if not filter.mapTickBox.selected[2] and not item.modInfoExtra.maps then return false end
-	if not filter.translateTickBox.selected[1] and item.modInfoExtra.translate then return false end
-	if not filter.translateTickBox.selected[2] and not item.modInfoExtra.translate then return false end
+	if not filter.locationTickBox.selected[1] and modInfo:getWorkshopID() then return false end
+	if not filter.locationTickBox.selected[2] and not modInfo:getWorkshopID() then return false end
+	if not filter.mapTickBox.selected[1] and modInfoExtra.maps then return false end
+	if not filter.mapTickBox.selected[2] and not modInfoExtra.maps then return false end
+	if not filter.translateTickBox.selected[1] and modInfoExtra.translate then return false end
+	if not filter.translateTickBox.selected[2] and not modInfoExtra.translate then return false end
 	if not filter.availabilityTickBox.selected[1] and item.isAvailable then return false end
 	if not filter.availabilityTickBox.selected[2] and not item.isAvailable then return false end
 	if not filter.statusTickBox.selected[1] and item.isActive then return false end
@@ -1073,38 +1105,40 @@ function ModListBox:checkFilter(item)
 	if not filter.favorTickBox.selected[2] and not item.isFavor then return false end
 	
 	-- search filter
-	local keyWord = filter.searchEntryBox:getText() or ""
+	local keyWord = filter.searchEntryBox:getInternalText() or ""
 	
 	local tableForFind = {}
 	if filter.searchby2.selected[1] then
-		table.insert(tableForFind, item.modInfo:getWorkshopID())
+		table.insert(tableForFind, modInfo:getWorkshopID())
 	elseif filter.searchby2.selected[2] then
-		for _, map in ipairs(item.modInfoExtra.maps or {}) do
+		for _, map in ipairs(modInfoExtra.maps or {}) do
 			table.insert(tableForFind, map)
 		end
 	elseif filter.searchby2.selected[3] then
-		table.insert(tableForFind, item.modInfoExtra.pzversion)
+		for _, pzversion in ipairs(modInfoExtra.pzversions or {}) do
+			table.insert(tableForFind, pzversion)
+		end
 	elseif filter.searchby2.selected[4] then
-		for _, t in ipairs(item.modInfoExtra.tags or {}) do
+		for _, t in ipairs(modInfoExtra.tags or {}) do
 			table.insert(tableForFind, t)
 		end
-		for _, t in ipairs(self.parent.customtags[item.modInfo:getId()] or {}) do
+		for _, t in ipairs(self.parent.customtags[modInfo:getId()] or {}) do
 			table.insert(tableForFind, t)
 		end
 	elseif filter.searchby2.selected[5] then
-		for _, author in ipairs(item.modInfoExtra.authors or {}) do
+		for _, author in ipairs(modInfoExtra.authors or {}) do
 			table.insert(tableForFind, author)
 		end
 	else
 		if filter.searchby1.selected[1] then
-			table.insert(tableForFind, item.modInfo:getName())
+			table.insert(tableForFind, modInfo:getName())
 		end
 		if filter.searchby1.selected[2] then
-			table.insert(tableForFind, item.modInfo:getDescription())
-			table.insert(tableForFind, item.modInfoExtra.description)
+			table.insert(tableForFind, modInfo:getDescription())
+			table.insert(tableForFind, modInfoExtra.description)
 		end
 		if filter.searchby1.selected[3] then
-			table.insert(tableForFind, item.modInfo:getId())
+			table.insert(tableForFind, modInfo:getId())
 		end
 	end
 	
@@ -1141,6 +1175,20 @@ function ModListBox:checkFilter(item)
 	return false
 end
 
+function ModListBox:updateFilter()
+	local visibleitems = {}
+	for _, i in ipairs(self.items) do
+		local item = i.item
+		if self:checkFilter(item) then
+			table.insert(visibleitems, i.itemindex)
+			item.visible = #visibleitems
+		else
+			item.visible = nil
+		end
+	end
+	self.visibleItems = visibleitems
+end
+
 function ModListBox:doDrawButton(text, internal, x, y, w, h)
 	local selected = self.mouseoverselected
 	local color = {a = 1.0, r = 0.0, g = 0.0, b = 0.0}
@@ -1166,7 +1214,7 @@ end
 
 function ModListBox:doDrawItem(y, i, alt)
 	local index, item = i.index, i.item
-	if not self:checkFilter(item) then return y end
+	if item.visible == nil then return y end
 	
 	local h, s = self.itemheight, self:isVScrollBarVisible() and 13 or 0
 	
@@ -1241,13 +1289,33 @@ function ModListBox:doDrawItem(y, i, alt)
 end
 
 function ModListBox:doActiveRequest(item, doFavor)
-	local pzversion = tonumber(item.modInfoExtra.pzversion)
-	if pzversion and pzversion < 41 then -- TODO: get current version
+	local pzversions = item.modInfoExtra.pzversions
+	if pzversions == nil or #pzversions == 0 then
+		self:doActive(item, doFavor)
+		return
+	end
+	
+	local current_pzversion = 41 -- TODO: get current PZ version
+	local requery_pzversions = {}
+	for _, pzversion in ipairs(pzversions) do
+		local v = tonumber(pzversion)
+		if v ~= nil then table.insert(requery_pzversions, math.floor(v)) end
+	end
+	
+	local ok = false
+	for _, requery_pzversion in ipairs(requery_pzversions) do
+		if requery_pzversion == current_pzversion then
+			ok = true
+			break
+		end
+	end
+	
+	if ok == false then
 		local modal = ISModalDialog:new(
 			(getCore():getScreenWidth() - 230)/2,
 			(getCore():getScreenHeight() - 120)/2,
 			230, 120,
-			getText("UI_NRK_ModSelector_List_Warning_OldMod", item.modInfo:getId(), pzversion),
+			getText("UI_NRK_ModSelector_List_Warning_OldMod", item.modInfo:getId()),
 			true, self,
 			function (target, button, param1, param2)
 				if button.internal == "YES" then
@@ -1321,6 +1389,7 @@ function ModListBox:onMouseMoveOutside(x, y)
 end
 
 function ModListBox:onMouseDown(x, y)
+	self.keyboardfocus = true
 	if self.mouseoverbutton then
 		self.pressedbutton = self.mouseoverbutton
 	else
@@ -1350,6 +1419,7 @@ end
 
 function ModListBox:onMouseUpOutside(x, y)
 	self.pressedbutton = nil
+	self.keyboardfocus = false
 --	ISScrollingListBox.onMouseUpOutside(self, x, y) -- call error "attempted index: onMouseUpOutside of non-table" when "reload lua" and mouse cursor outside the panel
 	if self.vscroll then self.vscroll.scrolling = false end
 end
@@ -1535,9 +1605,17 @@ function ModPanelInfo:prerender()
 			  " " .. color_d .. item.modInfoExtra.modversion .. " <LINE> "
 		end
 		
-		if item.modInfoExtra.pzversion ~= nil then
-			extra_desc = extra_desc .. color_l.. getText("UI_NRK_ModSelector_Info_PZVersion") ..
-			  " " .. color_d .. item.modInfoExtra.pzversion .. " <LINE> "
+		local pzversions = item.modInfoExtra.pzversions
+		if pzversions ~= nil and #pzversions > 1 then
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_PZVersion") ..
+			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
+			for _, author in ipairs(pzversions) do
+				extra_desc = extra_desc .. "- " .. author .. " <LINE> "
+			end
+			extra_desc = extra_desc .. " <INDENT:0> "
+		elseif pzversions ~= nil and #pzversions > 0 then
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_PZVersion") ..
+			  " " .. color_d .. pzversions[1] .. " <LINE> "
 		end
 		
 		local tags, customtags = item.modInfoExtra.tags or {}, self.parent.customtags[item.modInfo:getId()] or {}
@@ -1552,12 +1630,10 @@ function ModPanelInfo:prerender()
 			end
 			extra_desc = extra_desc .. color_d .. " <INDENT:0> "
 		elseif #tags == 1 then
-			extra_desc = extra_desc .. color_l ..
-			  (getTextOrNull("UI_NRK_ModSelector_Info_Tag") or getText("UI_NRK_ModSelector_Info_Tags")) ..
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Tags") ..
 			  " " .. color_d .. tags[1] .. " <LINE> "
 		elseif #customtags == 1 then
-			extra_desc = extra_desc .. color_l ..
-			  (getTextOrNull("UI_NRK_ModSelector_Info_Tag") or getText("UI_NRK_ModSelector_Info_Tags")) ..
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Tags") ..
 			  " " .. " <GREEN> " .. customtags[1] .. color_d .. " <LINE> "
 		end
 		
@@ -1570,14 +1646,13 @@ function ModPanelInfo:prerender()
 			end
 			extra_desc = extra_desc .. " <INDENT:0> "
 		elseif maps ~= nil and #maps > 0 then
-			extra_desc = extra_desc .. color_l ..
-			  (getTextOrNull("UI_NRK_ModSelector_Info_Map") or getText("UI_NRK_ModSelector_Info_Maps")) ..
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Maps") ..
 			  " " .. color_d .. maps[1] .. " <LINE> "
 		end
 		
 		local requires = item.modInfo:getRequire()
 		if requires and requires:size() > 1 then
-			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Requires") ..
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Require") ..
 			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
 			for i = 0, requires:size() - 1 do
 				local requireId = requires:get(i)
@@ -1590,8 +1665,7 @@ function ModPanelInfo:prerender()
 			end
 			extra_desc = extra_desc .. " <INDENT:0> "
 		elseif requires and not requires:isEmpty() then
-			extra_desc = extra_desc .. color_l ..
-			  (getTextOrNull("UI_NRK_ModSelector_Info_Require") or getText("UI_NRK_ModSelector_Info_Requires")) ..
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Require") ..
 			  " " .. color_d
 			local requireId = requires:get(0)
 			local requireItem = self.parent.listBox.items[self.parent.listBox.indexById[requireId]]
@@ -1611,8 +1685,7 @@ function ModPanelInfo:prerender()
 			end
 			extra_desc = extra_desc .. " <INDENT:0> "
 		elseif authors ~= nil and #authors > 0 then
-			extra_desc = extra_desc .. color_l .. 
-			  (getTextOrNull("UI_NRK_ModSelector_Info_Author") or getText("UI_NRK_ModSelector_Info_Authors")) ..
+			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Authors") ..
 			  " " .. color_d .. authors[1] .. " <LINE> "
 		end
 		
@@ -2258,3 +2331,55 @@ function ModPanelSave:onDelListConfirm(button)
 		self:updateOptions()
 	end
 end
+
+Events.OnKeyPressed.Add(function(key)
+	local target = ModSelector.instance
+	if target == nil or not target:getIsVisible() then return end
+	
+	local list = target.listBox
+	if list == nil or list.keyboardfocus ~= true then return end
+	
+	local indexInVisibleList = list.items[list.selected].item.visible
+	if key == Keyboard.KEY_UP then
+		if indexInVisibleList == nil then
+			local new_selected = list:prevVisibleIndex(list.selected)
+			list.selected = new_selected > 0 and new_selected or 1
+		elseif indexInVisibleList > 1 then
+			list.selected = list.visibleItems[indexInVisibleList - 1]
+		end
+	elseif key == Keyboard.KEY_DOWN then
+		if indexInVisibleList == nil then
+			local new_selected = list:nextVisibleItem(list.selected)
+			list.selected = new_selected > 0 and new_selected or list.visibleItems[#list.visibleItems]
+		elseif indexInVisibleList < #list.visibleItems then
+			list.selected = list.visibleItems[indexInVisibleList + 1]
+		end
+	elseif key == Keyboard.KEY_PRIOR then
+		local step = math.floor(list.height/list.itemheight) - 1
+		if indexInVisibleList == nil then
+			local new_selected = list:prevVisibleIndex(list.selected)
+			list.selected = new_selected > 0 and new_selected or 1
+		elseif indexInVisibleList > step then
+			list.selected = list.visibleItems[indexInVisibleList - step]
+		else
+			list.selected = list.visibleItems[1]
+		end
+	elseif key == Keyboard.KEY_NEXT then
+		local step = math.floor(list.height/list.itemheight) - 1
+		if indexInVisibleList == nil then
+			local new_selected = list:nextVisibleItem(list.selected)
+			list.selected = new_selected > 0 and new_selected or list.visibleItems[#list.visibleItems]
+		elseif indexInVisibleList < #list.visibleItems - step then
+			list.selected = list.visibleItems[indexInVisibleList + step]
+		else
+			list.selected = list.visibleItems[#list.visibleItems]
+		end
+	elseif key == Keyboard.KEY_HOME then
+		list.selected = list.visibleItems[1]
+	elseif key == Keyboard.KEY_END then
+		list.selected = list.visibleItems[#list.visibleItems]
+	--elseif key == Keyboard.KEY_RETURN or key == Keyboard.KEY_SPACE then
+	--	TODO: enable/disable item by RETURN or SPACE
+	end
+	list:ensureVisible(list.selected)
+end)
