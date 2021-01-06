@@ -58,9 +58,9 @@ UI_RU = {
 	UI_NRK_ModSelector_Info_Authors = "Авторы:",
 	
 	UI_NRK_ModSelector_Info_WorkshopLable = "ID в мастерской Steam:",
-	UI_NRK_ModSelector_Info_WorkshopTooltip = "Открыть Steam-страницу этого мода", /*"Открыть оверлей Steam для этого мода",*/
+	UI_NRK_ModSelector_Info_WorkshopTooltip = "Открыть Steam-страницу этого мода",
 	UI_NRK_ModSelector_Info_URLLabel = "Ссылка на сайт:",
-	UI_NRK_ModSelector_Info_URLTooltip = "Открыть URL", /*"Кликните для перехода к ссылке мода в вашем браузере",*/
+	UI_NRK_ModSelector_Info_URLTooltip = "Открыть URL",
 	UI_NRK_ModSelector_Info_URLWarning = "(этот адрес не является официальным хранилищем модов PZ - вы переходите на него на свой страх и риск)",
 	UI_NRK_ModSelector_Info_LocationLabel = "Расположение на диске:",
 	UI_NRK_ModSelector_Info_LocationTooltip = "Открыть расположение файла",

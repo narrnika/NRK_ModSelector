@@ -1218,6 +1218,12 @@ function ModListBox:doDrawItem(y, i, alt)
 	
 	local h, s = self.itemheight, self:isVScrollBarVisible() and 13 or 0
 	
+	-- check real line visibility
+	local local_y = self:getYScroll() + y
+	if s ~= 0 and (local_y < -h or local_y > self:getHeight()) then
+		return y + h + 1
+	end
+	
 	-- item bar
 	if self.selected == index then
 		self:drawRect(0, y, self:getWidth(), h, 0.3, 0.7, 0.35, 0.15)
@@ -1295,7 +1301,7 @@ function ModListBox:doActiveRequest(item, doFavor)
 		return
 	end
 	
-	local current_pzversion = 41 -- TODO: get current PZ version
+	local current_pzversion = tonumber(string.match(getCore():getVersionNumber(), "%d+")) -- TODO: testing
 	local requery_pzversions = {}
 	for _, pzversion in ipairs(pzversions) do
 		local v = tonumber(pzversion)
@@ -1347,6 +1353,8 @@ function ModListBox:doActive(item, doFavor)
 		self.parent.counters.favor = self.parent.counters.favor + 1
 	end
 	
+	self.parent.listBox:updateFilter()
+	
 	local requires = item.modInfo:getRequire()
 	if requires and not requires:isEmpty() then
 		for i = 0, requires:size() - 1 do
@@ -1366,6 +1374,8 @@ function ModListBox:doInactive(item)
 	if item.isFavor then self.parent.counters.favor = self.parent.counters.favor - 1 end
 	item.isActive = false
 	item.isFavor = false
+	
+	self.parent.listBox:updateFilter()
 	
 	for _, dependentId in ipairs(item.dependents or {}) do
 		self:doInactive(self.items[self.indexById[dependentId]].item)
@@ -1587,25 +1597,27 @@ function ModPanelInfo:prerender()
 	local i = self.parent.listBox.selected
 	if self.selected ~= i then
 		local item = self.parent.listBox.items[i].item
+		local modInfo = item.modInfo
+		local modInfoExtra = item.modInfoExtra
 		local color_d, color_l = " <RGB:0.7,0.7,0.7> ", " <RGB:0.9,0.9,0.9> "
 		
 		-- formation name & description
-		local name = item.modInfo:getName()
-		local desc = item.modInfoExtra.description or item.modInfo:getDescription() or ""
+		local name = modInfo:getName()
+		local desc = modInfoExtra.description or modInfo:getDescription() or ""
 		local full_desc = " <H1> " .. name .. " <LINE> <TEXT> " .. desc .. " <LINE> "
 		self.descRichText:setText(full_desc)
 		self.descRichText:paginate()
 		
 		-- formation extra info
 		local extra_desc = " <TEXT> " .. color_l .. getText("UI_NRK_ModSelector_Info_ModId") ..
-		  " " .. color_d .. item.modInfo:getId() .. " <LINE> "
+		  " " .. color_d .. modInfo:getId() .. " <LINE> "
 		
-		if item.modInfoExtra.modversion ~= nil then
+		if modInfoExtra.modversion ~= nil then
 			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_ModVersion") ..
-			  " " .. color_d .. item.modInfoExtra.modversion .. " <LINE> "
+			  " " .. color_d .. modInfoExtra.modversion .. " <LINE> "
 		end
 		
-		local pzversions = item.modInfoExtra.pzversions
+		local pzversions = modInfoExtra.pzversions
 		if pzversions ~= nil and #pzversions > 1 then
 			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_PZVersion") ..
 			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
@@ -1618,7 +1630,7 @@ function ModPanelInfo:prerender()
 			  " " .. color_d .. pzversions[1] .. " <LINE> "
 		end
 		
-		local tags, customtags = item.modInfoExtra.tags or {}, self.parent.customtags[item.modInfo:getId()] or {}
+		local tags, customtags = modInfoExtra.tags or {}, self.parent.customtags[modInfo:getId()] or {}
 		if #tags + #customtags > 1 then
 			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Tags") ..
 			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
@@ -1637,7 +1649,7 @@ function ModPanelInfo:prerender()
 			  " " .. " <GREEN> " .. customtags[1] .. color_d .. " <LINE> "
 		end
 		
-		local maps = item.modInfoExtra.maps
+		local maps = modInfoExtra.maps
 		if maps ~= nil and #maps > 1 then
 			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Maps") ..
 			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
@@ -1650,7 +1662,7 @@ function ModPanelInfo:prerender()
 			  " " .. color_d .. maps[1] .. " <LINE> "
 		end
 		
-		local requires = item.modInfo:getRequire()
+		local requires = modInfo:getRequire()
 		if requires and requires:size() > 1 then
 			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Require") ..
 			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
@@ -1676,7 +1688,7 @@ function ModPanelInfo:prerender()
 			end
 		end
 		
-		local authors = item.modInfoExtra.authors
+		local authors = modInfoExtra.authors
 		if authors ~= nil and #authors > 1 then
 			extra_desc = extra_desc .. color_l .. getText("UI_NRK_ModSelector_Info_Authors") ..
 			  color_d .. " <LINE> <INDENT:" .. tostring(DX) .. "> "
@@ -1693,11 +1705,11 @@ function ModPanelInfo:prerender()
 		self.extraRichText:paginate()
 		
 		-- formation links
-		if getSteamModeActive() and item.modInfo:getWorkshopID() then
+		if getSteamModeActive() and modInfo:getWorkshopID() then
 			self.workshopLabel:setVisible(true)
 			self.workshopEntry:setVisible(true)
 			self.workshopButton:setVisible(true)
-			self.workshopEntry:setText(item.modInfo:getWorkshopID())
+			self.workshopEntry:setText(modInfo:getWorkshopID())
 		else
 			self.workshopLabel:setVisible(false)
 			self.workshopEntry:setVisible(false)
@@ -1705,18 +1717,18 @@ function ModPanelInfo:prerender()
 			self.workshopEntry:setText("")
 		end
 		
-		if item.modInfo:getUrl() ~= nil and item.modInfo:getUrl() ~= "" then
+		if modInfo:getUrl() ~= nil and modInfo:getUrl() ~= "" then
 			self.urlLabel:setVisible(true)
 			self.urlEntry:setVisible(true)
 			self.urlButton:setVisible(true)
 			self.urlButton.tooltip = getText("UI_NRK_ModSelector_Info_URLTooltip")
-			self.urlEntry:setText(item.modInfo:getUrl())
-		elseif item.modInfoExtra.url ~= nil and item.modInfoExtra.url ~= "" then
+			self.urlEntry:setText(modInfo:getUrl())
+		elseif modInfoExtra.url ~= nil and modInfoExtra.url ~= "" then
 			self.urlLabel:setVisible(true)
 			self.urlEntry:setVisible(true)
 			self.urlButton:setVisible(true)
 			self.urlButton.tooltip = getText("UI_NRK_ModSelector_Info_URLTooltip") .. " " .. getText("UI_NRK_ModSelector_Info_URLWarning")
-			self.urlEntry:setText(item.modInfoExtra.url)
+			self.urlEntry:setText(modInfoExtra.url)
 		else
 			self.urlLabel:setVisible(false)
 			self.urlEntry:setVisible(false)
@@ -1724,7 +1736,7 @@ function ModPanelInfo:prerender()
 			self.urlEntry:setText("")
 		end
 		
-		self.locationEntry:setText(item.modInfo:getDir())
+		self.locationEntry:setText(modInfo:getDir())
 		
 		self.selected = i
 	end
